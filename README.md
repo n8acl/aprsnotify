@@ -98,7 +98,7 @@ python3 setup.py
 ```
 This will start the setup utility. The setup utility will walk you through the process and ask you for your API Keys.
 
-You can also edit the config.py file directly in a text/python editor if you wish after it has been created. If you need a walkthrough of the configuration file for future editing, please click here.
+You can also edit the config.py file directly in a text/python editor if you wish after it has been created. If you need a walkthrough of the configuration file for future editing, please [click here](https://github.com/n8acl/aprsnotify/blob/master/configuration.md#configuration-file-walkthrough).
 
 ---
 
