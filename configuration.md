@@ -16,6 +16,39 @@ Next you will need to choose the Geocoder API you wish to use. Set the geocoder_
 # 2 = OpenStreetMaps
 geocoder_to_use = 2
 ```
+Next choose the units you want to use, either metric (Degrees C, Kilometers Per Hour, etc) or Imperial (Degrees F, Miles per hour, Etc). Default is 2 (Imperial):
+```python
+## Select Unit Type to use. Default is 2 (Imperial):
+# 1 = Metric
+# 2 = Imperial
+units_to_use = 2
+```
+
+Want to be notified if an APRS Message is sent to a station in your list? Enable it here. Please note that this does require Teleggram to use. Not all messages to your station need to go to Twitter. Default is 0 (No):
+```python
+## Enable APRS Message notification. Default is 0 (No):
+## Note: You must provide a Telegram Bot Key and Chat ID below for messaging notification to work.
+# 0 = No
+# 1 = Yes
+enable_aprs_msg_notify = 1
+```
+Do you want to include a map image in your status? Currently this only works with Telegram, but it is kind of cool to see. This would be useful if you are pushing your APRS packet to a club Telegram channel for example or to a family Telegram Channel for others to see. Default is 0 (No):
+```python
+## Include Map image in status. Default is 0 (No):
+## Note: You must provide a Telegram Bot Key and Chat ID below for messaging notification to work.
+# 0 = No
+# 1 = Yes
+include_map_image = 1
+```
+
+Do you want to include a weather report for the location of the packet in your status message to Twitter or Telegram? Default is 1 (Yes):
+```python
+## Include Weather information in status. Default is 1 (Yes):
+# 0 = No
+# 1 = Yes
+include_wx = 1
+```
+
 If you are using Twitter, you will need to add your keys to the config file:
 ```python
 ## Configure Twitter Keys

@@ -6,12 +6,19 @@ from os import system, name
 
 
 # Define Static Variables
-configfile = os.path.dirname(os.path.abspath(__file__)) + "/config.py"
+config_fname = "test"
+config_old = config_fname + ".old"
+configfile = config_fname + ".py"
+version_number = 2.0
 linefeed = "\n"
 linebreak = "------------------------------------------------------"
-title_line = "APRSNotify First Run Configuration Utility"
+title_line = "APRSNotify Configuration Setup Utility"
 send_status_to = -1
 geocoder_to_use = -1
+units_to_use = -1
+include_wx = -1
+include_map_image = -1
+enable_aprs_msg_notify = -1
 
 # Define Functions
 def clear_screen(): # Defines function to clear the screen to make output easier to read
@@ -37,7 +44,6 @@ def get_geocoder(arg):
     }
     return switcher.get(arg,"Nothing")
 
-
 # Main Program
 clear_screen() # Clears the screen to make output easier to read
 
@@ -45,7 +51,7 @@ msg = title_line + """
 
 PLEASE READ THIS FIRST!
 
-This utility will help you to configure the APRSNotify configuration file for this first run of the APRSNotify Script. 
+This utility will help you to configure the APRSNotify configuration file for this run of the APRSNotify Script. 
 
 Please follow the directions found in the README at https://github.com/n8acl/aprsnotify in order to obtain the 
 API keys you will need for this script.
@@ -67,25 +73,16 @@ msg = title_line
 
 print(msg)
 
+msg = ""
+
 if os.path.exists(configfile):
-
-    msg = """
-
-    Previous config.py file was detected.""" + linefeed + linefeed
-    print(msg)
-
-    cpyfile = input("Would you like to copy this file to config.old for backup? (y/n)")
-    if cpyfile == 'y':
-        if name == 'nt': # windows
-            cmd = "copy config.py config.old"
-            os.system(cmd)
-        else: # MacOS (The Second best operating system ever) and Linux (The best operating system ever)
-            cmd = "mv config.py config.old"
-            os.system(cmd)
-        msg = "Your config.py file has been renamed config.old"
-    else:
-        msg = "YOUR CONFIG.PY FILE HAS NOT BEEN BACKED UP. Note that this utility will overwrite the existing file."
-    print(linefeed+linefeed+msg)
+    msg = "Previous config.py file detected. Copying to config.old."
+    print (msg)
+    if name == 'nt': # windows
+        cmd = "copy " + configfile + " " + config_old
+    else: # MacOS (The Second best operating system ever) and Linux (The best operating system ever)
+        cmd = "mv " + configfile + " " + config_old
+    os.system(cmd)
 
 msg = ""
 
@@ -105,7 +102,7 @@ while (send_status_to != 1 or send_status_to !=2 or send_status != 0):
     if (send_status_to == 1 or send_status_to == 2 or send_status_to ==0):
         break
 
-msg = linefeed + "You choose:" + linefeed + get_services(send_status_to) + linefeed
+msg = linefeed + "You chose:" + linefeed + get_services(send_status_to) + linefeed
 
 print(msg)
 
@@ -146,6 +143,83 @@ if geocoder_to_use == 1:
     msg = """In Order to use the Google Geocoding API, you will need to obtain an API key from Google.""" + linefeed + linefeed
     print(msg)
     googlegeocodeapikey = input("Please copy and paste the API from Google here: ")
+#-----------------------------------------
+clear_screen()
+
+msg = title_line + """
+
+What type of units of measure do you want to use?
+
+1 = Metric (Celcius, Kilometers Per Hour, Etc)
+2 = Imperial (Farenheit, Miles Per Hour, Etc)
+"""
+print(msg)
+
+while (units_to_use != 1 or units_to_use != 2):
+    units_to_use = int(input("Enter the number for the units you want to use: "))
+    if (units_to_use == 1 or units_to_use == 2):
+        break
+
+#-----------------------------------------
+if (send_status_to == 0 or send_status_to == 2): 
+
+    clear_screen()
+
+    msg = title_line + """
+
+Since you indicated earlier that you are using Telegram, you could use APRS message notification if you want.
+If someone sends a messsage to one of the callsigns being tracked by this script, the script will send you a notification
+on Telegram.
+
+Do you want to enable or disable APRS message notification?
+
+0 = Disable
+1 = Enable
+    """
+    print(msg)
+
+    while (enable_aprs_msg_notify != 1 or enable_aprs_msg_notify != 0):
+        enable_aprs_msg_notify = int(input("Enter the number for you choice: "))
+        if (enable_aprs_msg_notify == 1 or enable_aprs_msg_notify == 0):
+            break   
+
+    #-----------------------------------------
+    clear_screen()
+
+    msg = title_line + """
+
+You can also include a map image on your Telegram posts.
+Do you want to include a map image on your Telegram posts?
+
+0 = No
+1 = Yes
+    """
+    print(msg)
+
+    while (include_map_image != 1 or include_map_image != 0):
+        include_map_image = int(input("Enter the number for your choice: "))
+        if (include_map_image == 1 or include_map_image == 0):
+            break
+else:
+    enable_aprs_msg_notify = 0
+    include_map_image = 0
+#-----------------------------------------
+clear_screen()
+
+msg = title_line + """
+
+Also, do you want to include a weather report in your status?
+Note that this will require an API key from OpenWeatherMap at https://openweathermap.org/api to work. 
+
+0 = Disable
+1 = Enable
+"""
+print(msg)
+
+while (include_wx != 1 or include_wx != 0):
+    include_wx = int(input("Enter the number of your choice: "))
+    if (include_wx == 1 or include_wx == 0):
+        break
 
 #-----------------------------------------
 clear_screen()
@@ -157,9 +231,10 @@ Now we have the last few things we need to configure for the script.
 
 print(msg)
 
-callsignlist = list(map(str,input("Please enter the list of callsigns with ssid that you would like to track (ex: AA0ABC-1,AA0ABC-2,...): ").split(',')))
+callsignlist = list(map(str,input("Please enter the list of callsigns with ssid that you would like to track seperated by commas (ex: AA0ABC-1,AA0ABC-2,...): ").split(',')))
 aprsfikey = input("Please copy and paste your APRS.FI API key here: ")
-openweathermapkey = input("Please copy and paste your OpenWeatherMap API Key here: ")
+if include_wx == 1:
+    openweathermapkey = input("Please copy and paste your OpenWeatherMap API Key here: ")
 
 #-----------------------------------------
 
@@ -168,6 +243,7 @@ txt = """#######################################################################
 # APRSNotify
 # Developed by: Jeff Lehman, N8ACL
 # Inital Release Date: 02/22/2020
+# Current Release Date: 07/06/2020
 # https://github.com/n8acl/aprsnotify
 
 # Questions? Comments? Suggestions? Contact me one of the following ways:
@@ -185,6 +261,12 @@ txt = """#######################################################################
 
 #################################################################################
 
+## Current Version
+"""
+txt = txt + "version = " + str(version_number)
+
+txt = txt + """
+
 ## select which service to send the status to. Default is 0 (all):
 # 0 = All
 # 1 = Twitter
@@ -200,6 +282,48 @@ txt = txt + """
 """
 
 txt = txt + "geocoder_to_use = " + str(geocoder_to_use)
+
+txt = txt + """
+
+## Select Unit Type to use. Default is 2 (Imperial):
+# 1 = Metric
+# 2 = Imperial
+"""
+txt = txt + "units_to_use = " + str(units_to_use)
+
+txt = txt + """
+
+## Enable APRS Message notification. Default is 0 (No):
+## Note: You must provide a Telegram Bot Key and Chat ID below for messaging notification to work.
+# 0 = No
+# 1 = Yes
+"""
+
+txt = txt + "enable_aprs_msg_notify = " + str(enable_aprs_msg_notify)
+
+txt = txt + """
+
+## Include Map image in status. Default is 0 (No):
+## Note: You must provide a Telegram Bot Key and Chat ID below for messaging notification to work.
+# 0 = No
+# 1 = All -- for future use -- DO NOT USE YET
+# 2 = Twitter Only -- for future use -- DO NOT USE YET
+# 3 = Telegram Only
+"""
+txt = txt + "include_map_image = "
+
+if include_map_image == 1:
+    txt = txt + "3"
+else:
+    txt = txt + "0"
+
+txt = txt + """
+
+## Include Weather information in status. Default is 1 (Yes):
+# 0 = No
+# 1 = Yes
+"""
+txt = txt + "include_wx = " + str(include_wx)
 
 txt = txt + """
 
@@ -252,7 +376,11 @@ if geocoder_to_use == 1:
 else: 
     txt = txt + 'googlegeocodeapikey = "YOUR GOOGLE GEOCODING API KEY HERE" # this is your Google Geocodeing API Key' + linefeed
 
-txt = txt + 'openweathermapkey = "' + openweathermapkey + '" # This is your OpenWeatherMap API Key.' + linefeed
+if include_wx == 1:
+    txt = txt + 'openweathermapkey = "' + openweathermapkey + '" # This is your OpenWeatherMap API Key.' + linefeed
+else:
+    txt = txt + 'openweathermapkey = "YOUR OPENWEATHERMAP API KEY HERE" # This is your OpenWeatherMap API Key.' + linefeed
+
 
 with open(configfile,"w+") as f:
     f.write(txt)
@@ -268,10 +396,10 @@ Your config.py file has been built.
 This utility will be saved as setup.txt. If you would like to use this utility in the future to change configs,
 just rename the file from setup.txt to setup.py and rerun the APRSNotify script and this utility will run again. 
 
-It will save your existing config.py file to config.old as a backup if you need to reference it.
+If you had an existing config file, it copied your existing config.py file to config.old as a backup if you need to reference it.
 
 """
 
 print(msg)
 
-pause = input("When you are ready to finish this script and let the rest of the program run, please press enter.")
+pause = input("When you are ready to finish this script, please press enter.")
