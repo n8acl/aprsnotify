@@ -7,7 +7,7 @@ APRSNotify is a python based bot script designed to send parsed APRS packet data
 - [Features](https://github.com/n8acl/aprsnotify#Features)
 - [Description](https://github.com/n8acl/aprsnotify#Description)
 - [Installation](https://github.com/n8acl/aprsnotify#Installation/Setup)
-- [Updating to Version 2](https://github.com/n8acl/aprsnotify#UpdatingtoVersion2)
+- [Updating to Version 2](https://github.com/n8acl/aprsnotify#updating-to-version-2)
 - [Running the Script](https://github.com/n8acl/aprsnotify#Runningthescript)
 - [Credits](https://github.com/n8acl/aprsnotify#credits)
 - [Contact Me](https://github.com/n8acl/aprsnotify#contact)
