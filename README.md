@@ -66,6 +66,8 @@ Next you will need to install the following python libraries if they aren't alre
 pip3 install python-telegram-bot --upgrade
 pip3 install Tweepy --upgrade
 pip3 install geopy --upgrade
+pip3 install pickle --upgrade
+pip3 install requests --upgrade
 ```
 ### API Keys Needed
 Because of the nature of the API's being used, you will need to get your own API keys from the following:
@@ -91,7 +93,7 @@ Because of the nature of the API's being used, you will need to get your own API
 * [OpenWeatherMap](https://openweathermap.org/api) to pull your weather data based on packet location data. This is a free account, but you are limited to 60 calls per minute and 1000 calls per day. You do need this for the script to work.
 
 ### Getting the Script
-I recommend downloading just the aprsnotify.py, setup.py and update.py files since there is just those and it will create other files it needs. You can also clone the repo. The cloning will not update the config file only the files that are needed.
+I recommend downloading just the aprsnotify.py and setup.py files since there is just those and it will create other files it needs. You can also clone the repo. The cloning will not update the config file only the files that are needed.
 
 Make sure to place them in a folder that you remember. I usually use something like /scripts to keep all my small scripts in. You may want to create a scripts/aprsnotify folder to keep all related files in.
 
@@ -150,6 +152,9 @@ If you reach out to me and have an error, please include what error you are gett
 ---
 
 ## Change Log
+* 08/20/2020
+    - Updates to the ReadMe file
+
 * 07/06/2020 - Version 2.0 Release
     - Added/New Features:
         - Ability to choose between Metric and Imperial units
