@@ -9,12 +9,10 @@ from os import system, name
 config_fname = "test"
 config_old = config_fname + ".old"
 configfile = config_fname + ".py"
-version_number = 2.0
 linefeed = "\n"
 linebreak = "------------------------------------------------------"
 title_line = "APRSNotify Configuration Setup Utility"
 send_status_to = -1
-geocoder_to_use = -1
 units_to_use = -1
 include_wx = -1
 include_map_image = -1
@@ -36,14 +34,6 @@ def get_services(arg):
     }
     return switcher.get(arg,"Nothing")
 
-def get_geocoder(arg):
-    
-    switcher = {
-        1: "Google",
-        2: "OpenStreetMaps"
-    }
-    return switcher.get(arg,"Nothing")
-
 # Main Program
 clear_screen() # Clears the screen to make output easier to read
 
@@ -51,7 +41,7 @@ msg = title_line + """
 
 PLEASE READ THIS FIRST!
 
-This utility will help you to configure the APRSNotify configuration file for this run of the APRSNotify Script. 
+This utility will help you to configure the APRSNotify configuration file for the APRSNotify Bot Script. 
 
 Please follow the directions found in the README at https://github.com/n8acl/aprsnotify in order to obtain the 
 API keys you will need for this script.
@@ -125,29 +115,6 @@ clear_screen()
 
 msg = title_line + """
 
-Now we need to choose the Geocoding API you would like to use. 
-
-1 = Google (API Key Needed)
-2 = OpenStreetMaps (No API Key Needed)
-"""
-print(msg)
-
-while (geocoder_to_use != 1 or geocoder_to_use !=2):
-    geocoder_to_use = int(input("Please enter the number of the Geocoding API service to use: "))
-    if (geocoder_to_use == 1 or geocoder_to_use ==2):
-        break
-
-msg = linefeed + "You choose:" + linefeed + get_geocoder(geocoder_to_use) + linefeed + linefeed
-
-if geocoder_to_use == 1:
-    msg = """In Order to use the Google Geocoding API, you will need to obtain an API key from Google.""" + linefeed + linefeed
-    print(msg)
-    googlegeocodeapikey = input("Please copy and paste the API from Google here: ")
-#-----------------------------------------
-clear_screen()
-
-msg = title_line + """
-
 What type of units of measure do you want to use?
 
 1 = Metric (Celcius, Kilometers Per Hour, Etc)
@@ -169,7 +136,7 @@ if (send_status_to == 0 or send_status_to == 2):
 
 Since you indicated earlier that you are using Telegram, you could use APRS message notification if you want.
 If someone sends a messsage to one of the callsigns being tracked by this script, the script will send you a notification
-on Telegram.
+on Telegram. You would also be able to send messages from Telegram to APRS as well if you are using the APRSBot companion script.
 
 Do you want to enable or disable APRS message notification?
 
@@ -231,41 +198,19 @@ Now we have the last few things we need to configure for the script.
 
 print(msg)
 
-callsignlist = list(map(str,input("Please enter the list of callsigns with ssid that you would like to track seperated by commas (ex: AA0ABC-1,AA0ABC-2,...): ").split(',')))
+aprsbot_callsign = input("If you are going to use the interactive APRSBot companion script with Telegram, please enter a callsign for the bot to use with APRS-IS (ex: AA0ABC-1): ")
+callsignlist = list(map(str,input("Please enter the list of callsigns with ssid that you would like to track seperated by commas (ex: AA0ABC-1,AA0ABC-2,...). You may want to include the Callsign for the bot from above too: ").split(',')))
 aprsfikey = input("Please copy and paste your APRS.FI API key here: ")
 if include_wx == 1:
     openweathermapkey = input("Please copy and paste your OpenWeatherMap API Key here: ")
 
 #-----------------------------------------
 
-txt = """#################################################################################
-
-# APRSNotify
-# Developed by: Jeff Lehman, N8ACL
-# Inital Release Date: 02/22/2020
-# Current Release Date: 07/06/2020
-# https://github.com/n8acl/aprsnotify
-
-# Questions? Comments? Suggestions? Contact me one of the following ways:
-# E-mail: n8acl@protonmail.com
-# Twitter: @n8acl
-# Telegram: @Ravendos
-# Website: https://n8acl.ddns.net
-
-#################################################################################
-
-# Make sure the following libraries have been installed with pip3 prior to starting this.
-# pip3 install python-telegram-bot --upgrade
-# pip3 install Tweepy --upgrade
-# pip3 install geopy --upgrade
-
-#################################################################################
-
-## Current Version
-"""
-txt = txt + "version = " + str(version_number)
-
-txt = txt + """
+txt = """###############################################
+# Configuration File for APRSNotify and APRSBot
+# Questions about this file, please go to:
+# https://github.com/n8acl/aprsnotify/blob/master/configuration.md
+###############################################
 
 ## select which service to send the status to. Default is 0 (all):
 # 0 = All
@@ -273,15 +218,6 @@ txt = txt + """
 # 2 = Telegram
 """
 txt = txt + "send_status_to = " + str(send_status_to)
-
-txt = txt + """
-
-## Select Geocoder to use. Default is 2 (OpenStreetMaps):
-# 1 = Google
-# 2 = OpenStreetMaps
-"""
-
-txt = txt + "geocoder_to_use = " + str(geocoder_to_use)
 
 txt = txt + """
 
@@ -370,12 +306,9 @@ for i in range(0,len(callsignlist)):
 
 txt = txt + '] # This is the list of callsigns with ssid to monitor and tweet. You need at least one but can be as many as you want separated by commas' + linefeed
 
-txt = txt + 'aprsfikey = "' + aprsfikey + '" # This is your API key from your APRS.fi account' + linefeed
-if geocoder_to_use == 1:
-    txt = txt + 'googlegeocodeapikey = "' + googlegeocodeapikey + '" # this is your Google Geocodeing API Key' + linefeed
-else: 
-    txt = txt + 'googlegeocodeapikey = "YOUR GOOGLE GEOCODING API KEY HERE" # this is your Google Geocodeing API Key' + linefeed
+txt = txt + 'aprsbot_callsign = "' + aprsbot_callsign + '" # This is the callsign that APRSBot will use to send your location and any messages from Telegram to the APRS-IS Network.' + linefeed
 
+txt = txt + 'aprsfikey = "' + aprsfikey + '" # This is your API key from your APRS.fi account' + linefeed
 if include_wx == 1:
     txt = txt + 'openweathermapkey = "' + openweathermapkey + '" # This is your OpenWeatherMap API Key.' + linefeed
 else:

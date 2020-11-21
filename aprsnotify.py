@@ -2,8 +2,7 @@
 
 # APRSNotify
 # Developed by: Jeff Lehman, N8ACL
-# Inital Release Date: 02/22/2020
-# Current Release Date: 07/06/2020
+# Current Version: 3.0
 # https://github.com/n8acl/aprsnotify
 
 # Questions? Comments? Suggestions? Contact me one of the following ways:
@@ -13,27 +12,39 @@
 # Website: https://n8acl.ddns.net
 
 #################################################################################
-
-# Make sure the following libraries have been installed with pip3
-# pip3 install python-telegram-bot --upgrade
-# pip3 install Tweepy
-# pip3 install geopy
+# Changes notes for next release. Basically reminder of changes done and when:
+#################################################################################
 
 ###################   DO NOT CHANGE BELOW   #########################
 
 # Import our Libraries and Configured variables
 
 import config
-import telegram
-import tweepy
 import time
-import urllib.request, json
 import os
 import datetime
-import pickle
+try:
+    import requests
+except ImportError:
+    exit('This script requires the requests module\nInstall with: pip3 install requests')
+try:
+    import telegram
+except ImportError:
+    exit('This script requires the python-telegram-bot module\nInstall with: pip3 install python-telegram-bot')
+try:
+    import tweepy
+    from tweepy import OAuthHandler
+except ImportError:
+    exit('This script requires the tweepy module\nInstall with: pip3 install tweepy')
+try:
+    import pickle
+except ImportError:
+    exit('This script requires the pickle module\nInstall with: pip3 install pickle')
+try:
+    from geopy.geocoders import Nominatim
+except ImportError:
+    exit('This script requires the geopy module\nInstall with: pip3 install geopy')
 from time import sleep
-from tweepy import OAuthHandler
-from geopy.geocoders import Nominatim
 from os import system
 
 # Set Static Variables
@@ -41,14 +52,12 @@ version = '2.0'
 degree_sign= u'\N{DEGREE SIGN}'
 calllistlen = len(config.callsign_list)
 fixed_station = 0
-aprsurl = "https://api.aprs.fi/api/get?name="+",".join(config.callsign_list) + "&what=loc&apikey=" + config.aprsfikey + "&format=json"
-msgurl = "https://api.aprs.fi/api/get?what=msg&dst="+",".join(config.callsign_list) + "&apikey=" + config.aprsfikey + "&format=json"
-owm_base_url = "http://api.openweathermap.org/data/2.5/weather?"
-googlegeocode_baseurl = "https://maps.googleapis.com/maps/api/geocode/json?"
+aprsfi_url = "https://api.aprs.fi/api/get"
+owm_base_url = "http://api.openweathermap.org/data/2.5/weather"
 geolocator = Nominatim(user_agent="aprstweet")
 locdtstampfile = os.path.dirname(os.path.abspath(__file__)) + "/locdtstamp.txt"
-updatefile = os.path.dirname(os.path.abspath(__file__)) + "/update.py"
-filedellist = ['update.py','config_old.py']
+srccall = "N0CALL"
+msg = "No Message"
 
 # Twitter API Object Configuration
 auth = OAuthHandler(config.twitterkeys["consumer_key"], config.twitterkeys["consumer_secret"])
@@ -58,44 +67,32 @@ twitter_api = tweepy.API(auth)
 # Telegram bot configuration
 bot = telegram.Bot(token=config.telegramkeys["my_bot_token"])
 
-# Define Functions
-def check_version(version):
-    if config.version == version:
-        if name == 'nt': # windows
-            for x in filedellist:
-                cmd = "del " + x
-                os.system(cmd)
-        else: # MacOS (The Second best operating system ever) and Linux (The best operating system ever)
-            for x in filedellist:
-                cmd = "rm " + x
-                os.system(cmd)
-
-def get_json_payload(url):
+def get_json_payload(url,payload):
     # get json data from api's depending on the URL sent
-    with urllib.request.urlopen(url) as url:
-        return json.loads(url.read().decode())
+    return requests.get(url=url,params=payload)
 
 def get_curr_wx(owm_base_url, lat, lon):
     # Return Conditions and Temp for the packet location
     if config.units_to_use == 1:
-        wx_url = owm_base_url + "lat=" + lat + "&lon=" + lng + "&units=metric&APPID=" + config.openweathermapkey
+        units = 'metric'
     else:
-        wx_url = owm_base_url + "lat=" + lat + "&lon=" + lng + "&units=imperial&APPID=" + config.openweathermapkey
+        units = 'imperial'
 
-    data = get_json_payload(wx_url)
-
-    return data["weather"][0]["main"], data["main"]["temp"] # Conditions, temp
+    payload = {
+        'lat': lat,
+        'lon': lon,
+        'units': units,
+        'appid': config.openweathermapkey
+    }
+    
+    data = get_json_payload(owm_base_url,payload)
+    return data.json().get('weather')[0]['main'], data.json().get('main').get('temp') # Conditions, temp
 
 def get_location(lat,lng):
-    # Reverse geocode with google or openstreetmaps for location
+    # Reverse geocode with openstreetmaps for location
 
-    if config.geocoder_to_use == 1:
-        googlegeocodeurl = googlegeocode_baseurl + 'latlng='+ lat +','+lng +'&key=' + config.googlegeocodeapikey + '&sensor=false'
-        data = get_json_payload(googlegeocodeurl)
-        return data["results"][0]["formatted_address"]
-    else:
-        osm_address = geolocator.reverse(lat.strip()+","+lng.strip())
-        return osm_address.address
+    osm_address = geolocator.reverse(lat.strip()+","+lng.strip())
+    return osm_address.address
 
 def get_grid(dec_lat, dec_lon):
     ## Function developed by Walter Underwood, K6WRU https://ham.stackexchange.com/questions/221/how-can-one-convert-from-lat-long-to-grid-square
@@ -143,12 +140,6 @@ def tele_bot_message(msg):
 
 # Main Program
 
-# Check to see if update.py exists and then check the version and delete if the version of the config file
-# and version of the main script are the same. This should indicate that the update.py has already been run
-# and the config file updated.
-# if os.path.exists(updatefile):
-#     check_version(version)
-
 # Check for locdtstamp.txt and create if does not exist
 if not os.path.exists(locdtstampfile):
     with open(locdtstampfile,"wb") as f:
@@ -161,18 +152,26 @@ with open(locdtstampfile,"rb") as f:
     chks = pickle.load(f)
     f.close()
 
-# get APRS Payload Information and store information in variables
-data = get_json_payload(aprsurl)
+# get APRS Position Payload Information and store information in variables
+
+position_payload = {
+    'name': ",".join(config.callsign_list),
+    'what': 'loc',
+    'apikey': config.aprsfikey,
+    'format': 'json'
+}
+
+data = get_json_payload(aprsfi_url,position_payload)
 
 x=0
-while x <= calllistlen-1 and x < data["found"]:
-    if int(data["entries"][x]["lasttime"]) > int(chks["lasttime"]):
-        station = data["entries"][x]["name"]
-        lat = data["entries"][x]["lat"]
-        lng = data["entries"][x]["lng"]
-        lasttime = data["entries"][x]["lasttime"]
-        if "speed" in data["entries"][x]:
-            speedkph = float(data["entries"][x]["speed"])
+while x <= calllistlen-1 and x < data.json().get('found'):
+    if int(data.json().get('entries')[x]["lasttime"]) > int(chks["lasttime"]):
+        station = data.json().get('entries')[x]["name"]
+        lat = data.json().get('entries')[x]["lat"]
+        lng = data.json().get('entries')[x]["lng"]
+        lasttime = data.json().get('entries')[x]["lasttime"]
+        if "speed" in data.json().get('entries')[x]:
+            speedkph = float(data.json().get('entries')[x]["speed"])
         else:
             fixed_station = 1
        
@@ -221,16 +220,23 @@ if gooddata == 1: # If we have a good set of packet data
     
     chks["lasttime"] = lasttime
 
-# Check for messages to my callsign 
+# Check for messages to my callsign(s) 
 if config.enable_aprs_msg_notify == 1:
-    data = get_json_payload(msgurl)
+    msg_payload = {
+        'what': 'msg',
+        'dst': ",".join(config.callsign_list),
+        'apikey': config.aprsfikey,
+        'format': 'json'
+    }
+
+    data = get_json_payload(aprsfi_url,msg_payload)
 
     x=0
-    while x <= calllistlen-1 and x < data["found"]:
-        if int(data["entries"][x]["messageid"]) > int(chks["lastmsgid"]):
-            srccall = data["entries"][x]["srccall"]
-            msg = data["entries"][x]["message"]
-            lastmsgid = data["entries"][x]["messageid"]
+    while x <= calllistlen-1 and x < data.json().get('found'):
+        if int(data.json().get('entries')[x]["messageid"]) > int(chks["lastmsgid"]):
+            srccall = data.json().get('entries')[x]["srccall"]
+            msg = data.json().get('entries')[x]["message"]
+            lastmsgid = data.json().get('entries')[x]["messageid"]
             gooddata = 1
             break
         else:
