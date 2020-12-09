@@ -6,7 +6,7 @@ from os import system, name
 
 
 # Define Static Variables
-config_fname = "test"
+config_fname = "config"
 config_old = config_fname + ".old"
 configfile = config_fname + ".py"
 linefeed = "\n"
