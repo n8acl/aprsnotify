@@ -44,8 +44,6 @@ BOT_TIMEOUT = 30
 bot = None
 ## Configure Objects
 geolocator = Nominatim(user_agent="aprstweet")
-AIS = aprslib.IS(config.aprsbot_callsign, passwd = passcode, port=port)
-AIS.connect() # APRS-IS Connection Opened
 
 ## Define Functions
 def bot_polling():
@@ -173,10 +171,23 @@ def find_aprs_station(callsign):
         status = status + " | " + packet_timestamp + " | https://aprs.fi/" + station
         return status, lat, lng
 
+# Connect to APRS-IS, send text and close connecton
+def aprsis_send(txt):
+    #create object and connect
+    while True:
+        try:
+            AIS = aprslib.IS(config.aprsbot_callsign, passwd = passcode, port=port)
+            AIS.connect() # APRS-IS Connection Opened
+        except:
+            continue
+        else:
+            AIS.sendall(txt)
+            del AIS
+
 # Send postion to APRS-IS
 def send_position(lat,lon):
     beacon_text = config.aprsbot_callsign + ">APN100,TCPIP*:="+ aprslib.util.latitude_to_ddm(lat) + icon[0:1] + aprslib.util.longitude_to_ddm(lon) + icon[1:2] + "Jeff, N8ACL | Mobile on Phone from Telegram" # Object Beacon
-    AIS.sendall(beacon_text)
+    aprsis_send(beacon_text)
 
 # Send Message to APRS-IS
 def send_aprs_message(text):
@@ -187,7 +198,7 @@ def send_aprs_message(text):
         dst_callsign = dst_callsign + ' '
 
     aprs_msg = config.aprsbot_callsign + ">APN100,TCPIP*::" + dst_callsign + ':' + msg_txt
-    AIS.sendall(aprs_msg)
+    aprsis_send(aprs_msg)
 
 # Extract arguments
 def extract_args(arg):

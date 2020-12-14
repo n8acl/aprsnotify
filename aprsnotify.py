@@ -2,7 +2,7 @@
 
 # APRSNotify
 # Developed by: Jeff Lehman, N8ACL
-# Current Version: 3.0
+# Current Version: 3.1
 # https://github.com/n8acl/aprsnotify
 
 # Questions? Comments? Suggestions? Contact me one of the following ways:
@@ -48,9 +48,10 @@ from time import sleep
 from os import system
 
 # Set Static Variables
-version = '2.0'
 degree_sign= u'\N{DEGREE SIGN}'
-calllistlen = len(config.callsign_list)
+# calllistlen = len(config.callsign_list)
+# pos_callsign_list_len = len(config.callsign_list[:20])
+# msg_callsign_list_len = len(config.callsign_list[:10])
 fixed_station = 0
 aprsfi_url = "https://api.aprs.fi/api/get"
 owm_base_url = "http://api.openweathermap.org/data/2.5/weather"
@@ -58,6 +59,7 @@ geolocator = Nominatim(user_agent="aprstweet")
 locdtstampfile = os.path.dirname(os.path.abspath(__file__)) + "/locdtstamp.txt"
 srccall = "N0CALL"
 msg = "No Message"
+lastmsgid = 1
 
 # Twitter API Object Configuration
 auth = OAuthHandler(config.twitterkeys["consumer_key"], config.twitterkeys["consumer_secret"])
@@ -155,7 +157,7 @@ with open(locdtstampfile,"rb") as f:
 # get APRS Position Payload Information and store information in variables
 
 position_payload = {
-    'name': ",".join(config.callsign_list),
+    'name': ",".join(config.pos_callsign_list[:20]),
     'what': 'loc',
     'apikey': config.aprsfikey,
     'format': 'json'
@@ -164,7 +166,8 @@ position_payload = {
 data = get_json_payload(aprsfi_url,position_payload)
 
 x=0
-while x <= calllistlen-1 and x < data.json().get('found'):
+# calllistlen -1
+while x <= len(config.pos_callsign_list[:20])-1 and x < data.json().get('found'):
     if int(data.json().get('entries')[x]["lasttime"]) > int(chks["lasttime"]):
         station = data.json().get('entries')[x]["name"]
         lat = data.json().get('entries')[x]["lat"]
@@ -224,7 +227,7 @@ if gooddata == 1: # If we have a good set of packet data
 if config.enable_aprs_msg_notify == 1:
     msg_payload = {
         'what': 'msg',
-        'dst': ",".join(config.callsign_list),
+        'dst': ",".join(config.msg_callsign_list[:10]),
         'apikey': config.aprsfikey,
         'format': 'json'
     }
@@ -232,7 +235,8 @@ if config.enable_aprs_msg_notify == 1:
     data = get_json_payload(aprsfi_url,msg_payload)
 
     x=0
-    while x <= calllistlen-1 and x < data.json().get('found'):
+    # calllistlen-1
+    while x <= len(config.msg_callsign_list[:10])-1 and x < data.json().get('found'):
         if int(data.json().get('entries')[x]["messageid"]) > int(chks["lastmsgid"]):
             srccall = data.json().get('entries')[x]["srccall"]
             msg = data.json().get('entries')[x]["message"]

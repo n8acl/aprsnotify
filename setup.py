@@ -199,7 +199,9 @@ Now we have the last few things we need to configure for the script.
 print(msg)
 
 aprsbot_callsign = input("If you are going to use the interactive APRSBot companion script with Telegram, please enter a callsign for the bot to use with APRS-IS (ex: AA0ABC-1): ")
-callsignlist = list(map(str,input("Please enter the list of callsigns with ssid that you would like to track seperated by commas (ex: AA0ABC-1,AA0ABC-2,...). You may want to include the Callsign for the bot from above too: ").split(',')))
+pos_callsignlist = list(map(str,input("Please enter the list of callsigns with ssid that you would like to track seperated by commas (ex: AA0ABC-1,AA0ABC-2,...). You may want to include the Callsign for the bot from above as well. (NOTE: limit 20): ").split(',')))
+if enable_aprs_msg_notify = 1:
+    msg_callsignlist = list(map(str,input("Please enter the list of callsigns with ssid that you would like to monitor for messages seperated by commas (ex: AA0ABC-1,AA0ABC-2,...). You may want to include the Callsign for the bot from above as well. (NOTE: limit 10): ").split(',')))
 aprsfikey = input("Please copy and paste your APRS.FI API key here: ")
 if include_wx == 1:
     openweathermapkey = input("Please copy and paste your OpenWeatherMap API Key here: ")
@@ -297,14 +299,26 @@ txt = txt + """
 
 ## Configure Other API Keys and Variables
 """
-txt = txt + 'callsign_list = ['
+txt = txt + 'pos_callsign_list = ['
 
-for i in range(0,len(callsignlist)):
-    txt = txt + '"' + callsignlist[i].upper() + '"'
-    if i != len(callsignlist)-1:
+for i in range(0,len(pos_callsignlist)):
+    txt = txt + '"' + pos_callsignlist[i].upper() + '"'
+    if i != len(pos_callsignlist)-1:
         txt = txt + ","
 
-txt = txt + '] # This is the list of callsigns with ssid to monitor and tweet. You need at least one but can be as many as you want separated by commas' + linefeed
+txt = txt + '] # This is the list of callsigns with ssid to monitor and tweet. You need at least one but can be as many as you want separated by commas. Limit: 20' + linefeed
+if enable_aprs_msg_notify = 1:
+    txt = txt + 'msg_callsign_list = ['
+
+    for i in range(0,len(msg_callsignlist)):
+        txt = txt + '"' + msg_callsignlist[i].upper() + '"'
+        if i != len(msg_callsignlist)-1:
+            txt = txt + ","
+
+    txt = txt + '] # This is the list of callsigns with ssid to monitor for messages. You need at least one but can be as many as you want separated by commas. Limit: 10' + linefeed
+else:
+    txt = txt + 'msg_callsign_list = [] # This is the list of callsigns with ssid to monitor for messages. You need at least one but can be as many as you want separated by commas. Limit: 10' + linefeed
+
 
 txt = txt + 'aprsbot_callsign = "' + aprsbot_callsign + '" # This is the callsign that APRSBot will use to send your location and any messages from Telegram to the APRS-IS Network.' + linefeed
 

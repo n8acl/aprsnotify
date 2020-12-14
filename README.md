@@ -29,11 +29,18 @@ This software is for use by Amatuer Radio Operators only.
 - Send a message to an APRS Station from Telegram.
 
 ---
+## UPDATING TO RELEASE 3.1
+
+If you are running an older version of APRSnotify, you will need to run the setup.py utility again after cloning everything here. Make sure to backup your config.py file before cloning. 
+
+There are a couple new variables, so you will need to rebuild the config file when updating this release. You can use your old config.py file to reference your api keys. That is why you need to make sure to back it up somewhere you can access it. You will need to edit the file and copy out your keys to enter into the new config file while working through the setup.py utility.
+
+---
 
 ## Description
 This script is made up of two parts that can be used together or seperatly, depending on the users wants/needs.
 
-APRSNotify: This is the main part of the script and the notification portion if it. This script will pull your most recent APRS packet data from the [APRS.fi API](https://aprs.fi/page/api), will parse the data and send the data to various social media accounts (currently either a Twitter account or to Telegram via a Telegram Bot). The script will only pull your most recent packet and post it once. 
+APRSNotify: This is the main part of the script and the notification portion if it. This script will pull your most recent APRS packet data from the [APRS.fi API](https://aprs.fi/page/api), will parse the data and send the data to various social media accounts (currently either a Twitter account and/or to Telegram via a Telegram Bot). The script will only pull your most recent packet and post it once. 
 
 APRSBot: The second part of the script is an interactive bot that works with Telegram. This part of the bot will allow the user to pull any station packet and show it as well as send your location to the APRS-IS system, allowing you to send your location from your phone to the APRS network and be seen on sites like APRS.fi and APRSDirect. If you set up the Callsign-ssid as part of the APRSNotify tracking list, it will also send that packet to Twitter and Telegram for you.
 
@@ -81,6 +88,7 @@ chmod +x startbot.sh
 Because of the nature of the API's being used, you will need to get your own API keys from the following:
 
 * First and foremost, you will need an [APRS.fi](https://aprs.fi) account. On your account page is the API key you will need. Without this, nothing else will work.
+    - NOTE: There is a limit to the API. You can use 20 callsigns to find the positions of and 10 to pull messages for. 
 
 * [OpenWeatherMap](https://openweathermap.org/api) to pull your weather data based on packet location data. This is a free account, but you are limited to 60 calls per minute and 1000 calls per day. You do need this for the script to work.
 
@@ -125,7 +133,9 @@ and then add the following lines to your crontab:
 */10 * * * * python3 aprsnotify/aprsnotify.py
 @reboot aprsnotify/startbot.sh
 ```
-In this example, the script runs every 10 minutes and will start the interactive telegram bot on reboot of the system. My APRS beacons are sent every 5 minutes from the car, so it will post approximately every other beacon. If you are not using the interactive bot, you can skip adding that line. All that does is start the bot on a reboot of the system.
+In this example, the script runs every 10 minutes and will start the interactive telegram bot on reboot of the system. My APRS beacons are sent every 5 minutes from the car, so it will post approximately every other beacon. 
+
+If you are not using the interactive bot, you can skip adding the @reboot line. All that does is start the bot on a reboot of the system.
 
 If, for some reason, you need to access the bot script, to stop it or look for errors, you can use the following command to reattach to the session the bot is running in and control it from there:
 
@@ -138,13 +148,15 @@ Commands and other information about the bot can be found on the "Interacting wi
 ---
 
 ## Credits
-The Orignal Telegram Notify bot functionality was based off a gist by Github user Lucaspg96. [Click Here](https://gist.github.com/lucaspg96/284c9dbe01d05d0563fde8fbb00db220).
+The Original Telegram Notify bot functionality was based off a gist by Github user Lucaspg96. [Click Here](https://gist.github.com/lucaspg96/284c9dbe01d05d0563fde8fbb00db220).
 
 The Interactive APRSBot is based on a gist by Github user David-Lor [Click Here](https://gist.github.com/David-Lor/37e0ae02cd7fb1cd01085b2de553dde4)
 
 The Grid Square Function was developed by Walter Underwood, K6WRU and posted on ham.stackexchange.com. [Click Here](https://ham.stackexchange.com/questions/221/how-can-one-convert-from-lat-long-to-grid-square)
 
 The map image functionality for the Telegram Bot and suggestions to include or not include Weather data amoung other suggestions were contributed by Chanyeol Yoo, Ph.D., VK2FAED
+
+APRS.FI API Limitations issues found and troubleshot by [Alex Bowman, KN4KNG](https://github.com/KN4KNG). 
 
 ---
 
@@ -160,6 +172,20 @@ If you reach out to me and have an error, please include what error you are gett
 ---
 
 ## Change Log
+* 12/11/2020 - Release 3.1 - Fixes around APRS.FI API limitations
+    - APRSnotify
+      - Updated aprsnotify.py to split position tracking and messge monitoring lists out to 2 seperate lists due to APRS.fi API restrictions
+    - APRSbot
+      - Updated aprsbot to fix APRS-IS Timeouts for sending locations and messages
+    - README.md
+      - Added limitations to the API to the APRS.fi API key section.
+      - Other updates and clearifications to README.md
+    - Configuration.md
+      - Split callsign lists out to position tracking list and message list. This is due to limitations on the APRS.fi API
+
+* 12/09/2020 - Minor update
+    - Fixed Bug: fixed error in setup.py. Named the config file wrong in variable. (Found by [Alex Bowman, KN4KNG](https://github.com/KN4KNG))
+
 * 11/15/2020 - Version 3.0 Release
     - Added/New Features:
         - Added a requirements.txt file to make installing libraries easier for end users
