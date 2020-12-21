@@ -10,7 +10,6 @@ This software is for use by Amatuer Radio Operators only.
 - [Description](https://github.com/n8acl/aprsnotify#Description)
 - [Installation](https://github.com/n8acl/aprsnotify#Installation/Setup)
 - [Running the Script](https://github.com/n8acl/aprsnotify#Runningthescript)
-- [Interacting with the Bot on Telegram](https://github.com/n8acl/aprsnotify/blob/master/botcommands.md)
 - [Credits](https://github.com/n8acl/aprsnotify#credits)
 - [Contact Me](https://github.com/n8acl/aprsnotify#contact)
 - [Change Log](https://github.com/n8acl/aprsnotify#changelog)
