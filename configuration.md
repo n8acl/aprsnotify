@@ -74,7 +74,6 @@ msg_callsign_list = ["CALLSIGN-1","CALLSIGN-2"] # This is the list of callsigns 
 aprsfikey = "YOUR APRS.FI API KEY" # This is your API key from your APRS.fi account
 openweathermapkey = "YOUR OPENWEATHERMAP API KEY HERE" # This is your OpenWeatherMap API Key.
 ```
-- **aprsbot_callsign**: This is the callsign that the interactive APRSBot Telegram Bot will use to send location, messages and interact with the APRS-IS Network. So for Example: "N8ACL-5".
 - **pos_callsign_list**: This is the list of callsigns, with SSID, you wish to track, separated by commas. Example: "N8ACL-9","N8ACL-6". You can track as many callsigns here as you wish up to 20. It would be a good idea to also add the callsign for the aprsbot from above to this list to also have it tracked.
 - **msg_callsign_list**: This is the list of callsigns, with SSID, you wish to monitor for messages, separated by commas. Example: "N8ACL-9","N8ACL-6". You can track as many callsigns here as you wish up to 10. It would be a good idea to also add the callsign for the aprsbot from above to this list to also have it tracked.
 - **aprsfikey**: This is the API key from your APRS.FI account page. 
