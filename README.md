@@ -1,5 +1,5 @@
 # APRSNotify
-APRSNotify is a python based bot script designed to send parsed APRS packet data to Twitter and/or Telegram. This bot has both an interactive part and a notifier part to it. The interactive part of the bot only works with Telegram.
+APRSNotify is a python based bot script designed to send parsed APRS packet data to Twitter and/or Telegram. 
 
 This software is for use by Amatuer Radio Operators only.
 
@@ -25,9 +25,6 @@ This software is for use by Amatuer Radio Operators only.
 - Find Maidenhead Grid Square of packet location.
 - Send Status to Social Media Networks (currently Twitter and Telegram)
 - Get notification of an APRS message sent to your station (requires Telegram to work). If someone sends a message via APRS to one of the callsigns being tracked, the script will notify you and show you the message on Telegram. You can then send a response to the message from Telegram.
-- Retrieve a stations last packet and send your location without a radio (requires Telegram to work).
-- Send a message to an APRS Station from Telegram.
-
 ---
 ## UPDATING TO RELEASE 3.1
 
@@ -42,11 +39,7 @@ This script is made up of two parts that can be used together or seperatly, depe
 
 APRSNotify: This is the main part of the script and the notification portion if it. This script will pull your most recent APRS packet data from the [APRS.fi API](https://aprs.fi/page/api), will parse the data and send the data to various social media accounts (currently either a Twitter account and/or to Telegram via a Telegram Bot). The script will only pull your most recent packet and post it once. 
 
-APRSBot: The second part of the script is an interactive bot that works with Telegram. This part of the bot will allow the user to pull any station packet and show it as well as send your location to the APRS-IS system, allowing you to send your location from your phone to the APRS network and be seen on sites like APRS.fi and APRSDirect. If you set up the Callsign-ssid as part of the APRSNotify tracking list, it will also send that packet to Twitter and Telegram for you.
-
 This script can also notify you, via Telegram, if someone/something sends you a message on APRS. This way you can stay on top and see if there are messages being sent to you by another station. This is useful for monitoring a remote station. If something trips, a message could be sent via APRS to someone and then they know that something has happened at the remote site.
-
-In regards to Telegram bots, again, depending on your what/needs, if you are just going to use the notifier portion and you have an existing bot that you would like to use, that would be fine. However, if you would like to use the interactive portion of the bot, I would recommend creating a seperate APRS bot to be used for both the notifier and the interactive bot. This will keep everyting together and since both parts of the package pull from the same config file, it makes it easier.
 
 Note that this bot package was designed to be used by one person with multiple APRS Trackers to track packets from that one person.
 
@@ -80,8 +73,6 @@ git clone https://github.com/n8acl/aprsnotify.git
 cd /aprsnotify
 
 pip3 install -r requirements.txt
-
-chmod +x startbot.sh
 ```
 
 ### API Keys Needed
@@ -131,19 +122,8 @@ and then add the following lines to your crontab:
 
 ```bash
 */10 * * * * python3 aprsnotify/aprsnotify.py
-@reboot aprsnotify/startbot.sh
 ```
 In this example, the script runs every 10 minutes and will start the interactive telegram bot on reboot of the system. My APRS beacons are sent every 5 minutes from the car, so it will post approximately every other beacon. 
-
-If you are not using the interactive bot, you can skip adding the @reboot line. All that does is start the bot on a reboot of the system.
-
-If, for some reason, you need to access the bot script, to stop it or look for errors, you can use the following command to reattach to the session the bot is running in and control it from there:
-
-```bash
-screen -R aprsbot
-```
-
-Commands and other information about the bot can be found on the "Interacting with the Bot on Telegram" page.
 
 ---
 
@@ -172,6 +152,8 @@ If you reach out to me and have an error, please include what error you are gett
 ---
 
 ## Change Log
+* 12/21/2020
+    - Removed References to APRSbot and removed those script files.
 * 12/11/2020 - Release 3.1 - Fixes around APRS.FI API limitations
     - APRSnotify
       - Updated aprsnotify.py to split position tracking and messge monitoring lists out to 2 seperate lists due to APRS.fi API restrictions
