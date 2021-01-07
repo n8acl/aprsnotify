@@ -3,6 +3,8 @@ APRSNotify is a python based bot script designed to send parsed APRS packet data
 
 This software is for use by Amatuer Radio Operators only.
 
+## Version 4.0 to be released soon with major updates. Please check back soon!
+
 ---
 
 ## Table of Contents
