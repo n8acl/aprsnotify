@@ -2,27 +2,29 @@
 
 # APRSNotify
 # Developed by: Jeff Lehman, N8ACL
-# Current Version: 3.1
+# Current Version: 4.0
 # https://github.com/n8acl/aprsnotify
 
 # Questions? Comments? Suggestions? Contact me one of the following ways:
 # E-mail: n8acl@protonmail.com
 # Twitter: @n8acl
 # Telegram: @Ravendos
+# Mastodon: @n8acl@mastodon.radio
 # Website: https://n8acl.ddns.net
-
-#################################################################################
-# Changes notes for next release. Basically reminder of changes done and when:
-#################################################################################
 
 ###################   DO NOT CHANGE BELOW   #########################
 
-# Import our Libraries and Configured variables
+# Import our Libraries
 
-import config
 import time
+from time import sleep
 import os
+from os import system
 import datetime
+import sqlite3
+import sys
+from sqlite3 import Error
+
 try:
     import requests
 except ImportError:
@@ -37,62 +39,81 @@ try:
 except ImportError:
     exit('This script requires the tweepy module\nInstall with: pip3 install tweepy')
 try:
-    import pickle
-except ImportError:
-    exit('This script requires the pickle module\nInstall with: pip3 install pickle')
-try:
     from geopy.geocoders import Nominatim
 except ImportError:
     exit('This script requires the geopy module\nInstall with: pip3 install geopy')
-from time import sleep
-from os import system
+try:
+    from mastodon import Mastodon
+except ImportError:
+    exit('This script requires the mastodon.py module\nInstall with: pip3 install mastodon.py')
 
-# Set Static Variables
+######################################################################################################################
+# Define Variables and static objects
+
+version = 4.0
 degree_sign= u'\N{DEGREE SIGN}'
-# calllistlen = len(config.callsign_list)
-# pos_callsign_list_len = len(config.callsign_list[:20])
-# msg_callsign_list_len = len(config.callsign_list[:10])
 fixed_station = 0
-aprsfi_url = "https://api.aprs.fi/api/get"
-owm_base_url = "http://api.openweathermap.org/data/2.5/weather"
+aprsfi_api_base_url = "https://api.aprs.fi/api/get"
+owm_api_base_url = "http://api.openweathermap.org/data/2.5/weather"
 geolocator = Nominatim(user_agent="aprstweet")
-locdtstampfile = os.path.dirname(os.path.abspath(__file__)) + "/locdtstamp.txt"
-srccall = "N0CALL"
-msg = "No Message"
-lastmsgid = 1
+db_file = os.path.dirname(os.path.abspath(__file__)) + "/aprsnotify.db"
+setup = os.path.dirname(os.path.abspath(__file__)) + "/new.py"
+linefeed = "\n"
+pos_callsign_list = []
+msg_callsign_list = []
+wx_callsign_list = []
+goodposdata = 0
+goodmsgdata = 0
+goodwxdata = 0
+debug = 0
 
-# Twitter API Object Configuration
-auth = OAuthHandler(config.twitterkeys["consumer_key"], config.twitterkeys["consumer_secret"])
-auth.set_access_token(config.twitterkeys["access_token"], config.twitterkeys["access_secret"])
-twitter_api = tweepy.API(auth)
+######################################################################################################################
+# Define Functions
 
-# Telegram bot configuration
-bot = telegram.Bot(token=config.telegramkeys["my_bot_token"])
+def create_connection(db_file):
+    # Creates connection to APRSNotify.db SQLlite3 Database
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+    except Error as e:
+        print(e)
+    return conn
 
-def get_json_payload(url,payload):
-    # get json data from api's depending on the URL sent
+def exec_sql(conn,sql):
+    # Executes SQL for Updates, inserts and deletes
+    cur = conn.cursor()
+    cur.execute(sql)
+    conn.commit()
+
+def select_sql(conn,sql):
+    # Executes SQL for Selects
+    cur = conn.cursor()
+    cur.execute(sql)
+    return cur.fetchall()
+
+def get_api_data(url,payload):
+    # get JSON data from api's
     return requests.get(url=url,params=payload)
 
-def get_curr_wx(owm_base_url, lat, lon):
-    # Return Conditions and Temp for the packet location
-    if config.units_to_use == 1:
+def get_curr_wx(lat, lon):
+    # Return Conditions and Temp for the packet location.
+    if units_to_use == 1:
         units = 'metric'
     else:
         units = 'imperial'
 
-    payload = {
+    owm_payload = {
         'lat': lat,
         'lon': lon,
         'units': units,
-        'appid': config.openweathermapkey
+        'appid': openweathermapkey
     }
     
-    data = get_json_payload(owm_base_url,payload)
+    data = get_api_data(owm_api_base_url,owm_payload)
     return data.json().get('weather')[0]['main'], data.json().get('main').get('temp') # Conditions, temp
 
 def get_location(lat,lng):
     # Reverse geocode with openstreetmaps for location
-
     osm_address = geolocator.reverse(lat.strip()+","+lng.strip())
     return osm_address.address
 
@@ -128,133 +149,391 @@ def get_grid(dec_lat, dec_lon):
     return grid_lon_sq + grid_lat_sq + grid_lon_field + grid_lat_field + grid_lon_subsq + grid_lat_subsq
 
 def send_status(msg,lat,lng):
-    if (config.send_status_to == 0 or config.send_status_to == 1): # Send Status to Twitter
-        twitter_status = msg + " #APRS"
-        twitter_api.update_status(twitter_status)
-    if (config.send_status_to == 0 or config.send_status_to == 2): # Send Status to Telegram
+    # Create status for microblogs (Twitter, Mastodon)
+    micro_status = msg + " #APRS"
+
+    # Send status to various services
+    if (send_to_all == 1 or send_to_twitter == 1): # Send Status to Twitter
+        twitter_api.update_status(micro_status)
+
+    if (send_to_all == 1 or send_to_telegram == 1): # Send Status to Telegram
         tele_bot_message(msg)
-        if (config.include_map_image == 1 or config.include_map_image == 3): # Includes a map of the packet location in Telegram
+        if (include_map_image == 1): # Includes a map of the packet location in Telegram
             bot.sendLocation(chat_id=config.telegramkeys["my_chat_id"], latitude=lat, longitude=lng, disable_notification=True)
 
+    if (send_to_all == 1 or send_to_mastodon == 1): # Send Status to Mastodon
+        mastodon_api.toot(micro_status)
+
 def tele_bot_message(msg):
-    # Sends the status message text to Telegram
-    bot.sendMessage(chat_id=config.telegramkeys["my_chat_id"], text=msg)
+    # Sends the message text to Telegram. This is used for both status and message sending
+    bot.sendMessage(chat_id=telegramkeys["my_chat_id"], text=msg)
 
-# Main Program
 
-# Check for locdtstamp.txt and create if does not exist
-if not os.path.exists(locdtstampfile):
-    with open(locdtstampfile,"wb") as f:
-        chks = {"lasttime":"1","lastmsgid":"1"}
-        pickle.dump(chks,f)
-        f.close()
+######################################################################################################################
+# Check for first run
 
-# Get packet time and last msg id from locdtstamp.txt
-with open(locdtstampfile,"rb") as f:
-    chks = pickle.load(f)
-    f.close()
+if not os.path.exists(db_file):
+    print(linefeed + "******** Your Database for APRSNotify is not configured. Please run an_util.py ********" + linefeed)
+    sys.exit()
+else:
+    if os.path.exists(setup):
+        os.remove(setup)
 
-# get APRS Position Payload Information and store information in variables
+
+######################################################################################################################
+# Load Data from Database into variables
+
+# Create Database Connection
+conn = create_connection(db_file)
+
+# Build Position Callsign list
+result = select_sql(conn, "select callsign from pos_callsigns")
+
+for row in result:
+    pos_callsign_list.append(row[0])
+
+# Build Message Callsign list
+result = select_sql(conn, "select callsign from msg_callsigns")
+
+for row in result:
+    msg_callsign_list.append(row[0])
+
+# Build Weather Station Callsign list
+result = select_sql(conn, "select callsign from wx_callsigns")
+
+for row in result:
+    wx_callsign_list.append(row[0])
+
+# Get api keys from database
+
+sql = """select 
+twitter_consumer_key,
+twitter_consumer_secret,
+twitter_access_token,
+twitter_access_secret,
+telegram_bot_token,
+telegram_my_chat_id,
+aprsfikey,
+openweathermapkey,
+mastodon_client_id,
+mastodon_client_secret,
+mastodon_api_base_url,
+mastodon_user_access_token
+from apikeys"""
+
+result = select_sql(conn, sql)
+
+for row in result:
+    twitterkeys = {
+        "consumer_key": row[0],
+        "consumer_secret": row[1],
+        "access_token": row[2],
+        "access_secret": row[3]
+    }
+
+    telegramkeys = {
+        "my_bot_token": row[4], 
+        "my_chat_id": row[5]
+    }
+
+    mastodonkeys = {
+        "client_id": row[8],
+        "client_secret": row[9],
+        "api_base_url": row[10],
+        "user_access_token": row[11]
+    }
+
+    aprsfikey = row[6]
+    openweathermapkey = row[7]
+
+# Get config switches from database
+
+sql = """select 
+    send_to_all,
+    send_to_twitter,
+    send_to_telegram,
+    send_to_mastodon,
+    units_to_use,
+    enable_aprs_msg_notify,
+    include_map_image,
+    include_wx,
+    send_position_data,
+    send_weather_data
+from config"""
+
+result = select_sql(conn, sql)
+
+for row in result:
+    send_to_all = row[0]
+    send_to_twitter = row[1]
+    send_to_telegram = row[2]
+    send_to_mastodon = row[3]
+    units_to_use = row[4]
+    enable_aprs_msg_notify = row[5]
+    include_map_image = row[6]
+    include_wx = row[7]
+    send_position_data = row[8]
+    send_weather_data = row[9]
+
+# Get stamp data from database
+sql = """select 
+    lastpostime,
+    lastmsgid,
+    lastwxtime
+from aprsstamps"""
+
+result = select_sql(conn, sql)
+
+for row in result:
+    lasttime = row[0]
+    lastmsgid = row[1]
+    lastwxtime = row[2]
+
+######################################################################################################################
+# Define static JSON Payloads for API retrevial
 
 position_payload = {
-    'name': ",".join(config.pos_callsign_list[:20]),
+    'name': ",".join(pos_callsign_list),
     'what': 'loc',
-    'apikey': config.aprsfikey,
+    'apikey': aprsfikey,
     'format': 'json'
 }
 
-data = get_json_payload(aprsfi_url,position_payload)
+msg_payload = {
+    'what': 'msg',
+    'dst': ",".join(msg_callsign_list),
+    'apikey': aprsfikey,
+    'format': 'json'
+}
 
-x=0
-# calllistlen -1
-while x <= len(config.pos_callsign_list[:20])-1 and x < data.json().get('found'):
-    if int(data.json().get('entries')[x]["lasttime"]) > int(chks["lasttime"]):
-        station = data.json().get('entries')[x]["name"]
-        lat = data.json().get('entries')[x]["lat"]
-        lng = data.json().get('entries')[x]["lng"]
-        lasttime = data.json().get('entries')[x]["lasttime"]
-        if "speed" in data.json().get('entries')[x]:
-            speedkph = float(data.json().get('entries')[x]["speed"])
-        else:
-            fixed_station = 1
-       
-        gooddata = 1
-        break
-    else:
-        x=x+1
-        gooddata = 0
+wx_payload = {
+    'name': ",".join(wx_callsign_list),
+    'what': 'wx',
+    'apikey': aprsfikey,
+    'format': 'json'
+}
 
-if gooddata == 1: # If we have a good set of packet data
-    
-    # Format Packet Time and Speed Data
-    packet_timestamp = datetime.datetime.fromtimestamp(int(lasttime)).strftime('%H:%M:%S')
-    if fixed_station == 0:
-        if config.units_to_use == 1:
-            speed = speedkph
-        else:
-            speed = round(speedkph/1.609344,1)
+######################################################################################################################
+# API Object Configurations for Social Media Networks
 
-    #Create Status Message
-    status = station + ": "+ get_location(lat,lng)
-        
-    if fixed_station == 0:
-        if config.units_to_use == 1:
-            status = status + " | Speed: "+ str(speed) + " kph"
-        else:
-            status = status + " | Speed: "+ str(speed) + " mph"  
-        
-    status = status + " | Grid: " + get_grid(float(lat),float(lng))
-    
-    if config.include_wx == 1:
-        #Get Weather Information
-        conditions, temp = get_curr_wx(owm_base_url, lat, lng)
+# Twitter API Object Configuration
+if (send_to_all == 1 or send_to_twitter == 1):
+    auth = OAuthHandler(twitterkeys["consumer_key"], twitterkeys["consumer_secret"])
+    auth.set_access_token(twitterkeys["access_token"], twitterkeys["access_secret"])
+    twitter_api = tweepy.API(auth)
 
-        if config.units_to_use == 1:
-            status = status + " | WX: "+ str(temp) + degree_sign + " C & " + conditions
-        else:
-            status = status + " | WX: "+ str(temp) + degree_sign + " F & " + conditions
+# Telegram Bot/API Configuration
+if (send_to_all == 1 or send_to_telegram == 1):
+    bot = telegram.Bot(token=telegramkeys["my_bot_token"])
 
-    status = status + " | " + packet_timestamp + \
-        " | https://aprs.fi/" + station
-    
-    # Send packet Status
-    # print(status) # Send to Screen (for debugging)
-    send_status(status,lat,lng) # Send status to Social Networks
-    
-    chks["lasttime"] = lasttime
+# Mastodon API Object Configuration
+if (send_to_all == 1 or send_to_mastodon == 1):
+    mastodon_api = Mastodon(mastodonkeys["client_id"], mastodonkeys["client_secret"], mastodonkeys["user_access_token"], api_base_url=mastodonkeys["api_base_url"])
 
-# Check for messages to my callsign(s) 
-if config.enable_aprs_msg_notify == 1:
-    msg_payload = {
-        'what': 'msg',
-        'dst': ",".join(config.msg_callsign_list[:10]),
-        'apikey': config.aprsfikey,
-        'format': 'json'
-    }
+######################################################################################################################
+# Main Program
 
-    data = get_json_payload(aprsfi_url,msg_payload)
+###########################################
+# Check for position data
+
+if send_position_data == 1:
+
+    data = get_api_data(aprsfi_api_base_url,position_payload)
 
     x=0
-    # calllistlen-1
-    while x <= len(config.msg_callsign_list[:10])-1 and x < data.json().get('found'):
-        if int(data.json().get('entries')[x]["messageid"]) > int(chks["lastmsgid"]):
-            srccall = data.json().get('entries')[x]["srccall"]
-            msg = data.json().get('entries')[x]["message"]
-            lastmsgid = data.json().get('entries')[x]["messageid"]
-            gooddata = 1
+    while x <= len(pos_callsign_list)-1 and x < data.json().get('found'):
+        if int(data.json().get('entries')[x]["lasttime"]) > lasttime:
+            station = data.json().get('entries')[x]["name"]
+            lat = str(data.json().get('entries')[x]["lat"])
+            lng = str(data.json().get('entries')[x]["lng"])
+            lasttime = data.json().get('entries')[x]["lasttime"]
+            if "speed" in data.json().get('entries')[x]:
+                speedkph = float(data.json().get('entries')[x]["speed"])
+            else:
+                fixed_station = 1
+        
+            goodposdata = 1
             break
         else:
             x=x+1
-            gooddata = 0
+            goodposdata = 0
 
-    if gooddata == 1: # If we have good msg data
+    if goodposdata == 1: # If we have a good set of packet data
+        
+        #Create Status Message
+        status = station + ": "+ get_location(lat,lng)
+            
+        if fixed_station == 0:
+            if units_to_use == 1:
+                status = status + " | Speed: "+ str(speedkph) + " kph"
+            else:
+                status = status + " | Speed: "+ str(round(speedkph/1.609344,1)) + " mph"  
+            
+        status = status + " | Grid: " + get_grid(float(lat),float(lng))
+        
+        if include_wx == 1:
+            #Get Weather Information
+            conditions, temp = get_curr_wx(lat, lng)
+
+            if units_to_use == 1:
+                status = status + " | WX: "+ str(temp) + degree_sign + " C & " + conditions
+            else:
+                status = status + " | WX: "+ str(temp) + degree_sign + " F & " + conditions
+
+        status = status + " | " + datetime.datetime.fromtimestamp(int(lasttime)).strftime('%H:%M:%S') + \
+            " | https://aprs.fi/" + station
+        
+        if debug == 0:
+            send_status(status,lat,lng) # Send status to Social Networks
+        else:
+            print(status) # Send to Screen (for debugging)
+
+###########################################
+# Now check for Weather Station Data  
+      
+if send_weather_data == 1:
+
+    data = get_api_data(aprsfi_api_base_url,wx_payload)
+
+    x=0
+    while x <= len(wx_callsign_list)-1 and x < data.json().get('found'):
+        if int(data.json().get('entries')[x]["time"]) > lastwxtime:
+            station = data.json().get('entries')[x]["name"]
+            lastwxtime = data.json().get('entries')[x]["time"]
+            if "temp" in data.json().get('entries')[x]:
+                tempC = float(data.json().get('entries')[x]["temp"])
+            else:
+                tempC = 'None'
+            if "pressure" in data.json().get('entries')[x]:
+                pressure = float(data.json().get('entries')[x]["pressure"])
+            else:
+                pressure = 'None'            
+            if "humidity" in data.json().get('entries')[x]:
+                humidity = float(data.json().get('entries')[x]["humidity"])
+            else:
+                humidity = 'None' 
+            if "wind_direction" in data.json().get('entries')[x]:
+                wind_direction = float(data.json().get('entries')[x]["wind_direction"])
+            else:
+                wind_direction = 'None'
+            if "wind_speed" in data.json().get('entries')[x]:
+                wind_speed = float(data.json().get('entries')[x]["wind_speed"])
+            else:
+                wind_speed = 'None'
+            if "wind_gust" in data.json().get('entries')[x]:
+                wind_gust = float(data.json().get('entries')[x]["wind_gust"])
+            else:
+                wind_gust = 'None'
+            if "rain_1h" in data.json().get('entries')[x]:
+                rain_1h = float(data.json().get('entries')[x]["rain_1h"])
+            else:
+                rain_1h = 'None'
+            if "rain_24h" in data.json().get('entries')[x]:
+                rain_24h = float(data.json().get('entries')[x]["rain_24h"])
+            else:
+                rain_24h = 'None'
+            if "rain_mn" in data.json().get('entries')[x]:
+                rain_mn = float(data.json().get('entries')[x]["rain_mn"])
+            else:
+                rain_mn = 'None'
+            if "luminosity" in data.json().get('entries')[x]:
+                luminosity = float(data.json().get('entries')[x]["luminosity"])
+            else:
+                luminosity = 'None'
+
+            goodwxdata = 1
+            break
+        else:
+            x=x+1
+            goodwxdata = 0
+
+    if goodwxdata == 1: # If we have a good set of packet data
+        
+        #Create Status Message
+        status = station + " WX Data as of " + datetime.datetime.fromtimestamp(int(lastwxtime)).strftime('%H:%M:%S') + linefeed
+
+        if isinstance(tempC,float):
+            if units_to_use == 1:
+                status = status + "Temp: " + str(tempC) + degree_sign + " C" + linefeed
+            else:
+                status = status + "Temp: " + str(9.0/5.0 * tempC + 32) + degree_sign + " F" + linefeed
+        if isinstance(pressure,float):
+            status = status + "Pressure: " + str(pressure) + " mbar" + linefeed
+        if isinstance(humidity,float):
+            status = status + "Humidity: " + str(humidity) + "%" + linefeed
+        if isinstance(wind_direction,float):
+            status = status + "Wind Direction: " + str(wind_direction) + degree_sign + linefeed
+        if isinstance(wind_speed,float):
+            if units_to_use == 1:
+                status = status + "Wind Speed: " + str(round(wind_speed * 3.6,1)) + " kph" + linefeed
+            else:
+                status = status + "Wind Speed: " + str(round(wind_speed * 2.2369,1)) + " mph" + linefeed
+        if isinstance(wind_gust,float):
+            if units_to_use == 1:
+                status = status + "Wind Gust: " + str(round(wind_gust * 3.6,1)) + " kph" + linefeed
+            else:
+                status = status + "Wind Gust: " + str(round(wind_gust * 2.2369,1)) + " mph" + linefeed
+        if isinstance(rain_1h,float):
+            if units_to_use == 1:
+                status = status + "Rain 1Hr: " + str(round(rain_1h,1)) + " mm" + linefeed
+            else:
+                status = status + "Rain 1Hr: " + str(round(rain_1h * 0.03937007874,1)) + " in" + linefeed
+        if isinstance(rain_24h,float):
+            if units_to_use == 1:
+                status = status + "Rain 24Hr: " + str(round(rain_24h,1)) + " mm" + linefeed
+            else:
+                status = status + "Rain 24Hr: " + str(round(rain_24h * 0.03937007874,1)) + " in" + linefeed
+        if isinstance(rain_24h,float):
+            if units_to_use == 1:
+                status = status + "Rain Since Midnight: " + str(round(rain_mn,1)) + " mm" + linefeed
+            else:
+                status = status + "Rain Since Midnight: " + str(round(rain_mn * 0.03937007874,1)) + " in" + linefeed
+        if isinstance(luminosity,float):
+            status = status + "Luminosity: " + str(luminosity) + "W/m^2" + linefeed
+
+        # status = status + "Time: " +  datetime.datetime.fromtimestamp(int(lastwxtime)).strftime('%H:%M:%S') + " | " + \
+        status = status + "https://aprs.fi/" + station
+        
+        if debug == 0:
+            send_status(status,lat,lng) # Send status to Social Networks
+        else: 
+            print(status) # Send to Screen (for debugging)
+
+###########################################
+# Now Check for messages to my callsign(s) 
+
+if enable_aprs_msg_notify == 1:
+
+    data = get_api_data(aprsfi_api_base_url,msg_payload)
+
+    x=0
+    while x <= len(msg_callsign_list)-1 and x < data.json().get('found'):
+        if int(data.json().get('entries')[x]["messageid"]) > lastmsgid:
+            srccall = data.json().get('entries')[x]["srccall"]
+            dstcall = data.json().get('entries')[x]["dst"]
+            msg = data.json().get('entries')[x]["message"]
+            dtstamp = data.json().get('entries')[x]["time"]
+            lastmsgid = data.json().get('entries')[x]["messageid"]
+            goodmsgdata = 1
+            break
+        else:
+            x=x+1
+            goodmsgdata = 0
+
+    if goodmsgdata == 1: # If we have good msg data
+        msg_timestamp = datetime.datetime.fromtimestamp(int(dtstamp)).strftime('%H:%M:%S')
+        msg_datestamp = datetime.datetime.fromtimestamp(int(dtstamp)).strftime('%m/%d/%Y')
+
         # create msg status and send to Telegram
-        msg_status = srccall + " sent you the following message on APRS: " + msg
-        tele_bot_message(msg_status)
+        msg_status = "On " + msg_datestamp + " at " + msg_timestamp + " " + srccall + " sent " + dstcall + " the following APRS message: " + linefeed + msg
+        if debug == 0:
+            tele_bot_message(msg_status)
+        else:
+            print(msg_status) # Send to Screen (for debugging)
 
-        chks["lastmsgid"] = lastmsgid
-
-# Update locdtstamp.txt with lastmsgid/DT Stamp and close
-with open(locdtstampfile,"wb") as f:
-    pickle.dump(chks,f)
-    f.close()
+# Update aprsstamps table in database with lastmsgid/DT Stamp and close
+sql = "update aprsstamps set lastpostime = " + str(lasttime) + ", lastmsgid = " + str(lastmsgid) + ", lastwxtime = " + str(lastwxtime) + ";"
+if debug == 0:
+    exec_sql(conn, sql)
+else:
+    print(sql)

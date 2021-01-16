@@ -1,6 +1,7 @@
 python-telegram-bot
 Tweepy
 geopy
-pickle
 requests
 aprslib
+mastodon.py
+pickle

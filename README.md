@@ -1,143 +1,65 @@
 # APRSNotify
-APRSNotify is a python based bot script designed to send parsed APRS packet data to Twitter and/or Telegram. 
+APRSNotify is a python based bot script designed to send parsed APRS packet data to Twitter, Telegram and/or Mastodon.
 
 This software is for use by Amatuer Radio Operators only.
 
-## Version 4.0 to be released soon with major updates. Please check back soon!
+Please see the Wiki for more information and installation and configuration.
 
----
-
-## Table of Contents
-- [Features](https://github.com/n8acl/aprsnotify#Features)
-- [Description](https://github.com/n8acl/aprsnotify#Description)
-- [Installation](https://github.com/n8acl/aprsnotify#Installation/Setup)
-- [Running the Script](https://github.com/n8acl/aprsnotify#Runningthescript)
-- [Credits](https://github.com/n8acl/aprsnotify#credits)
-- [Contact Me](https://github.com/n8acl/aprsnotify#contact)
-- [Change Log](https://github.com/n8acl/aprsnotify#changelog)
+##### Working Examples:
+- Twitter: @n8acl_aprs
+- Mastodon: You will need to follow n8acl_aprs@botsin.space.
 
 ---
 
 ## Features
-- Setup Utility for creating your config file.
-- Pull most recent packet data from [APRS.fi API](https://aprs.fi/page/api).
+- Pulls most packet data from [APRS.fi API](https://aprs.fi/page/api) for the following types of packets:
+  - Postion Data
+  - Weather Station Data
 - Reverse Geocode with OpenStreetMaps API.
-- Get Weather Information from OpenWeatherMaps API for the location of the packet
+- Get Weather Information from OpenWeatherMaps API for the location of the position packet
 - Find Maidenhead Grid Square of packet location.
-- Send Status to Social Media Networks (currently Twitter and Telegram)
-- Get notification of an APRS message sent to your station (requires Telegram to work). If someone sends a message via APRS to one of the callsigns being tracked, the script will notify you and show you the message on Telegram. You can then send a response to the message from Telegram.
----
-## UPDATING TO RELEASE 3.1
-
-If you are running an older version of APRSnotify, you will need to run the setup.py utility again after cloning everything here. Make sure to backup your config.py file before cloning. 
-
-There are a couple new variables, so you will need to rebuild the config file when updating this release. You can use your old config.py file to reference your api keys. That is why you need to make sure to back it up somewhere you can access it. You will need to edit the file and copy out your keys to enter into the new config file while working through the setup.py utility.
+- Send Status to Social Media Networks (currently Twitter, Telegram and Mastodon)
+- Get notification of an APRS message sent to your station (requires Telegram to work). If someone sends a message via APRS to one of the callsigns being tracked, the script will notify you and show you the message on Telegram.
 
 ---
-
-## Description
-This script is made up of two parts that can be used together or seperatly, depending on the users wants/needs.
-
-APRSNotify: This is the main part of the script and the notification portion if it. This script will pull your most recent APRS packet data from the [APRS.fi API](https://aprs.fi/page/api), will parse the data and send the data to various social media accounts (currently either a Twitter account and/or to Telegram via a Telegram Bot). The script will only pull your most recent packet and post it once. 
-
-This script can also notify you, via Telegram, if someone/something sends you a message on APRS. This way you can stay on top and see if there are messages being sent to you by another station. This is useful for monitoring a remote station. If something trips, a message could be sent via APRS to someone and then they know that something has happened at the remote site.
-
-Note that this bot package was designed to be used by one person with multiple APRS Trackers to track packets from that one person.
-
-If you would like to see a working example, at least on Twitter of what the notifier portion does, please check out [@n8acl_aprs](https://twitter.com/n8acl_aprs) on Twitter.
-
-This script does take a little bit to get configured to run, the biggest portion of it being getting all the API keys that you will need for the script, but once those are in place, the script is very easy to run, just set it and forget it.
-
-The scripts can be run from a cronjob (Linux) or Task Scheduler (Windows) and is lightweight enough to even be run on a Raspberry Pi Zero W.
-
-Most of the instructions in this README assume that you are using Linux to setup your script to run. If you want to run it on Windows or Mac, you will need to install Python based on instructions for those OS's and know how to setup Task Scheduler, but the configuration of the script itself is the same.
 
 ### Use Cases
-* Sending an APRS packet to Twitter for your followers to see.
+* Sending an APRS packet to Twitter/Mastodon for your followers to see.
+* Sending Weather data from APRS to Social Media.
 * Sending APRS data to yourself to confirm that it is making it to the internet (via Telegram for example).
 * Sending your position information to a Telegram Channel that you have your non-ham radio family and friends on so they can track you when you are traveling by car for a long distance.
+* Sending your APRS data to a club Mastodon Instance feed for the club to see.
 * Sending position data to a radio club Telegram Channel so that everyone can see your data posted.
 * Other uses that your imagination comes up with.
 
 ---
 
-# Installation/Setup
-To install the script, please run the following commands:
+## UPGRADE TO VERSION 4.0
 
-```bash
-sudo apt-get update && sudo apt-get -y upgrade && sudo apt-get -y dist-upgrade
+To upgrade to version 4.0 of the script, please run the updatev4.py script. It will pull in everything from the old config.py file that it can. 
 
-sudo apt-get install python3 python3-pip git screen
+Please make sure to backup the config.py file before cloning the repo again to get the latest script files. It shouldn't delete it, but it may, so please make sure to backup the config file first and then copy it back in if needed before running updatev4.py.
 
-git clone https://github.com/n8acl/aprsnotify.git
+If you are installing the whole script for the first time (IE have never used APRSNotify before), do not run this script, but please run an_util.py. Only run this upgrade if you have used APRSNotify before and have an existing config.py file.
 
-cd /aprsnotify
+Due to some changes to meet the APRS.fi API requirements, I have had to split the callsign list into 3 lists, a postion tracking list, a message notification list and now, if you have a weather station that puts weather data on APRS, a weather station tracking list. There can only be 20 callsigns to track positions with and 10 to get messages with. Because of this, we cannot automtically bring the lists in and will need you to reenter them when asked by the update utility.
 
-pip3 install -r requirements.txt
-```
-
-### API Keys Needed
-Because of the nature of the API's being used, you will need to get your own API keys from the following:
-
-* First and foremost, you will need an [APRS.fi](https://aprs.fi) account. On your account page is the API key you will need. Without this, nothing else will work.
-    - NOTE: There is a limit to the API. You can use 20 callsigns to find the positions of and 10 to pull messages for. 
-
-* [OpenWeatherMap](https://openweathermap.org/api) to pull your weather data based on packet location data. This is a free account, but you are limited to 60 calls per minute and 1000 calls per day. You do need this for the script to work.
-
-* If you plan on using Telegram:
-    - You will need to first either create a Telegram bot or use an existing one you own. If this is your first bot, you can use the [steps here](https://core.telegram.org/bots#6-botfather) and talk to @BotFather to create your bot. You will need the bot token for the bot you are using/creating and this can also be obtained from talking to @BotFather.
-    - You will also need your chatid. This can be obtained once your bot is up and running by sending a message to your bot and using the Telegram API by going to this url: [https://api.telegram.org/bot'API-access-token'/getUpdates?offset=0](https://api.telegram.org/bot<API-access-token>/getUpdates?offset=0) replacing 'API-access-token' with your bot access token you obtained in the previous step. You will see some json and you will be able to find your ID there in the From stanza.
-    - Note that Influx DB provides some examples of what to look for in the above 2 steps. You can go to their page by [clicking here](https://docs.influxdata.com/kapacitor/v1.5/event_handlers/telegram/).
-    - NOTE: Telegram is required for APRS message notification and for the interactive part of the bot to work.
-
-* If you plan on using Twitter:
-    - You will need to get a consumer key, consumer secret, access token and access secret for the account you are wanting to post to. You can get those keys from The Twitter development site. Here is a walk through how: [Generate Twitter API Keys](https://themepacific.com/how-to-generate-api-key-consumer-token-access-key-for-twitter-oauth/994/)
-
-### Configure the Script
-Once you have your API Keys, you can now start configuring your APRSNotify bot. To start the process, in the directory where you have the APRSNotify bot files you just downloaded/cloned, enter the command:
-```bash
-python3 setup.py
-```
-This will start the setup utility. The setup utility will walk you through the process of configuring the various needed variables and ask you for your API Keys. 
-
-You can also edit the config.py file directly in a text/python editor if you wish after it has been created. If you need a walkthrough of the configuration file for future editing, please [click here](https://github.com/n8acl/aprsnotify/blob/master/configuration.md#configuration-file-walkthrough).
-
----
-
-## Running the Script
-Once you have walked through the setup utility, you can run the script for a test. To run the script, you can use the command
-```bash
-python3 aprsnotify.py
-```
-in the directory where you have the script's files. When you run this manually, you will see the latest packet you sent displayed to the screen and if you look at Telegram/Twitter, you will see it there as well. This let's you know that you have everything configured correctly and everything is working fine.
-
-Once you have confirmed that the script is running and everything is working, you can now setup to run the script automatically either via Task Scheduler in Windows or by adding a cronjob on Linux.
-
-Edit your crontab file:
-
-```bash
-crontab -e
-```
-
-and then add the following lines to your crontab:
-
-```bash
-*/10 * * * * python3 aprsnotify/aprsnotify.py
-```
-In this example, the script runs every 10 minutes and will start the interactive telegram bot on reboot of the system. My APRS beacons are sent every 5 minutes from the car, so it will post approximately every other beacon. 
+The update utility wil also ask if you want to send the status to Mastodon then ask you to set that up. Please make sure that you have followed the directions in the wiki to obtain the API keys for Mastodon if you are going to use that before running the update script. 
 
 ---
 
 ## Credits
 The Original Telegram Notify bot functionality was based off a gist by Github user Lucaspg96. [Click Here](https://gist.github.com/lucaspg96/284c9dbe01d05d0563fde8fbb00db220).
 
-The Interactive APRSBot is based on a gist by Github user David-Lor [Click Here](https://gist.github.com/David-Lor/37e0ae02cd7fb1cd01085b2de553dde4)
+Adding Grid Square to Status message was suggested by Alex, N7AGF.
 
 The Grid Square Function was developed by Walter Underwood, K6WRU and posted on ham.stackexchange.com. [Click Here](https://ham.stackexchange.com/questions/221/how-can-one-convert-from-lat-long-to-grid-square)
 
 The map image functionality for the Telegram Bot and suggestions to include or not include Weather data amoung other suggestions were contributed by Chanyeol Yoo, Ph.D., VK2FAED
 
 APRS.FI API Limitations issues found and troubleshot by [Alex Bowman, KN4KNG](https://github.com/KN4KNG). 
+
+APRS and the APRS System and associated copyright were developed by Bob Bruninga, WB4APR [http://www.aprs.org](http://www.aprs.org).
 
 ---
 
@@ -146,15 +68,25 @@ If you have questions, please feel free to reach out to me. You can reach me in 
 
 - Twitter: @n8acl
 - Telegram: @ravendos
+- Mastodon: @n8acl@mastodon.radio
 - E-mail: n8acl@protonmail.com
+
+Or open an issue on Github. I will respond to it, and of course you, when I can. Remember, this is a hobby and there are other daily distractors that come first, like work, school and family.
 
 If you reach out to me and have an error, please include what error you are getting and what you were doing. I may also ask you to send me certain files to look at. Otherwise just reach out to me :).
 
 ---
 
 ## Change Log
-* 12/21/2020
-    - Removed References to APRSbot and removed those script files.
+* 01/15/2021 - Version 4.0 Release
+    - Removal of APRSBot to a different project
+    - Moved from text files for data storage to SQLlite3 Database
+    - Various small bug fixes and rework of the code.
+    - Added: ability to send status to Mastodon
+    - Added: an_util.py configuration utility for interacting with the database
+    - Added: New wiki user guide.
+    - Added: Parsing of Weather Data packet from APRS.
+
 * 12/11/2020 - Release 3.1 - Fixes around APRS.FI API limitations
     - APRSnotify
       - Updated aprsnotify.py to split position tracking and messge monitoring lists out to 2 seperate lists due to APRS.fi API restrictions
