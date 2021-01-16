@@ -1,7 +1,7 @@
 # APRSNotify
 APRSNotify is a python based bot script designed to send parsed APRS packet data to Twitter, Telegram and/or Mastodon.
 
-This software is for use by Amatuer Radio Operators only.
+This software is for use by Amateur Radio Operators only.
 
 Please see the Wiki for more information and installation and configuration.
 
@@ -13,7 +13,7 @@ Please see the Wiki for more information and installation and configuration.
 
 ## Features
 - Pulls most packet data from [APRS.fi API](https://aprs.fi/page/api) for the following types of packets:
-  - Postion Data
+  - Position Data
   - Weather Station Data
 - Reverse Geocode with OpenStreetMaps API.
 - Get Weather Information from OpenWeatherMaps API for the location of the position packet
