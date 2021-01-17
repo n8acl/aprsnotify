@@ -40,11 +40,11 @@ To upgrade to version 4.0 of the script, please run the updatev4.py script. It w
 
 Please make sure to backup the config.py file before cloning the repo again to get the latest script files. It shouldn't delete it, but it may, so please make sure to backup the config file first and then copy it back in if needed before running updatev4.py.
 
-If you are installing the whole script for the first time (IE have never used APRSNotify before), do not run this script, but please run an_util.py. Only run this upgrade if you have used APRSNotify before and have an existing config.py file.
+If you are installing the whole script for the first time (i.e. have never used APRSNotify before), do not run this script, but please run an_util.py. Only run this upgrade if you have used APRSNotify before and have an existing config.py file.
 
 Due to some changes to meet the APRS.fi API requirements, I have had to split the callsign list into 3 lists, a postion tracking list, a message notification list and now, if you have a weather station that puts weather data on APRS, a weather station tracking list. There can only be 20 callsigns to track positions with and 10 to get messages with. Because of this, we cannot automtically bring the lists in and will need you to reenter them when asked by the update utility.
 
-The update utility wil also ask if you want to send the status to Mastodon then ask you to set that up. Please make sure that you have followed the directions in the wiki to obtain the API keys for Mastodon if you are going to use that before running the update script. 
+The update utility will also ask if you want to send the status to Mastodon, then ask you to set that up. Please make sure that you have followed the directions in the wiki to obtain the API keys for Mastodon if you are going to use that before running the update script. 
 
 ---
 
@@ -55,7 +55,7 @@ Adding Grid Square to Status message was suggested by Alex, N7AGF.
 
 The Grid Square Function was developed by Walter Underwood, K6WRU and posted on ham.stackexchange.com. [Click Here](https://ham.stackexchange.com/questions/221/how-can-one-convert-from-lat-long-to-grid-square)
 
-The map image functionality for the Telegram Bot and suggestions to include or not include Weather data amoung other suggestions were contributed by Chanyeol Yoo, Ph.D., VK2FAED
+The map image functionality for the Telegram Bot and suggestions to include or not include Weather data among other suggestions were contributed by Chanyeol Yoo, Ph.D., VK2FAED
 
 APRS.FI API Limitations issues found and troubleshot by [Alex Bowman, KN4KNG](https://github.com/KN4KNG). 
 
