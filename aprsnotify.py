@@ -159,7 +159,7 @@ def send_status(msg,lat,lng):
     if (send_to_all == 1 or send_to_telegram == 1): # Send Status to Telegram
         tele_bot_message(msg)
         if (include_map_image == 1): # Includes a map of the packet location in Telegram
-            bot.sendLocation(chat_id=config.telegramkeys["my_chat_id"], latitude=lat, longitude=lng, disable_notification=True)
+            bot.sendLocation(chat_id=telegramkeys["my_chat_id"], latitude=lat, longitude=lng, disable_notification=True)
 
     if (send_to_all == 1 or send_to_mastodon == 1): # Send Status to Mastodon
         mastodon_api.toot(micro_status)
