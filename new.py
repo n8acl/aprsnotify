@@ -687,10 +687,10 @@ select
 
             run_sql(conn,sql)
 
-    if send_status_types == 1 or send_status_types = 3:
+    if send_status_types == 1 or send_status_types == 3:
         msg = """
 
-    Since you indicated you are using a Weather Station and would like tohave that data sent to Social Media,
+    Since you indicated you are using a Weather Station and would like to have that data sent to Social Media,
     we need to know the callsign(s) of the weatehr station(s) to pull the data.
 
     Please enter the list below of callsigns in the following format, seperated by commas:
