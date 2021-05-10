@@ -297,7 +297,7 @@ select
     telegram_bot_token, telegram_my_chat_id, aprsfikey, openweathermapkey)
     values(null,null,null,null,null,null,null,null);"""
 
-    run_sql(conn_sql)
+    run_sql(conn,sql)
 
     sql = """insert into aprsstamps (lastpostime, lastmsgid)
     values(1,1,1);
