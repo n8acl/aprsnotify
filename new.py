@@ -554,7 +554,7 @@ select
         if (units_to_use == 1 or units_to_use == 2):
             break
     
-    sql = "update config set units_to_use = " + units_to_use + ";"
+    sql = "update config set units_to_use = " + str(units_to_use) + ";"
     run_sql(conn,sql)
 
 
@@ -567,7 +567,7 @@ select
 
     Since you indicated earlier that you are using Telegram, you could use APRS message notification if you want.
     If someone sends a messsage to one of the callsigns being tracked by this script, the script will send you a notification
-    on Telegram. You would also be able to send messages from Telegram to APRS as well if you are using the APRSBot companion script.
+    on Telegram. 
 
     Do you want to enable or disable APRS message notification?
 
@@ -581,7 +581,7 @@ select
             if (enable_aprs_msg_notify == 1 or enable_aprs_msg_notify == 0):
                 break
 
-        sql = "update config set enable_aprs_msg_notify = " + enable_aprs_msg_notify + ";"
+        sql = "update config set enable_aprs_msg_notify = " + str(enable_aprs_msg_notify) + ";"
         run_sql(conn,sql)        
 
         #-----------------------------------------
@@ -601,7 +601,7 @@ select
             if (include_map_image == 1 or include_map_image == 0):
                 break
 
-        sql = "update config set include_map_image = " + include_map_image + ";"
+        sql = "update config set include_map_image = " + str(include_map_image) + ";"
         run_sql(conn,sql)  
     #-----------------------------------------
     clear_screen()
@@ -621,7 +621,7 @@ select
         if (include_wx == 1 or include_wx == 0):
             break
 
-    sql = "update config set include_wx = " + include_wx + ";"
+    sql = "update config set include_wx = " + str(include_wx) + ";"
     run_sql(conn,sql) 
     #-----------------------------------------
     clear_screen()
