@@ -289,7 +289,7 @@ select
 
     sql = """insert into config (send_to_all, send_to_twitter, send_to_telegram, send_to_mastodon, units_to_use, enable_aprs_msg_notify, 
     include_map_image, include_wx,send_position_data, send_weather_data, version)
-    values (0,0,0,0,0,0,0,0,0,0,""" + version + """);"""
+    values (0,0,0,0,0,0,0,0,0,0,""" + str(version) + """);"""
 
     run_sql(conn,sql)
 
