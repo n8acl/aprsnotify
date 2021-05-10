@@ -258,7 +258,7 @@ select
 		else 'ON'
 		end as current_state
     from anutilmenu where submenu_id = 5
-	and menu_id = 9;
+	and menu_id = 9
 UNION
 select
     menu_id, 
@@ -268,7 +268,7 @@ select
 		else 'ON'
 		end as current_state
     from anutilmenu where submenu_id = 5
-	and menu_id = 10;
+	and menu_id = 10
 UNION
 select
     menu_id, 
