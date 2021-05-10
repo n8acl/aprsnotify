@@ -719,12 +719,13 @@ select
 
     print(linefeed)    
     aprsfikey = input("Now, please copy and paste your APRS.FI API key here: ")
+    sql = "update apikeys set aprsfikey = '" + aprsfikey + "'; "
+    run_sql(conn,sql) 
+
     if include_wx == 1:
         openweathermapkey = input("Finally, please copy and paste your OpenWeatherMap API Key here: ")
-
-    sql = "update apikeys set aprsfikey = '" + aprsfikey + "', "
-    sql = "openweathermapkey = '" + openweathermapkey + "';"
-    run_sql(conn,sql) 
+        sql = "update apikeys set openweathermapkey = '" + openweathermapkey + "';"
+        run_sql(conn,sql) 
 
     #-----------------------------------------
     clear_screen()
