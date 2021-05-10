@@ -300,7 +300,7 @@ select
     run_sql(conn,sql)
 
     sql = """insert into aprsstamps (lastpostime, lastmsgid)
-    values(1,1,1);
+    values(1,1);
     """ 
     run_sql(conn,sql)
 
