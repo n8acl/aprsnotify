@@ -75,7 +75,7 @@ def setup(conn):
 
         run_sql(conn, sql)
 
-    def set_telgram_keys(conn):
+    def set_telegram_keys(conn):
         msg = "In order to use Telegram, You will need to obtain 2 Keys from them: The Bot Token and Your Chat ID " + linefeed + linefeed
         print(msg)
         my_bot_token = input("Please copy and paste your Bot Token here: ")
