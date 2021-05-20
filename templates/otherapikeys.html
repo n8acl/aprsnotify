@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <title>
+            APRSNotify Configuration Utility
+        </title>
+    </head>
+    <body>
+        <h1>{{ page_title }}</h1>
+        <b>For help please see the APRSnotify Wiki: <br>
+        <a href="https://github.com/n8acl/aprsnotify/wiki" target="top">https://github.com/n8acl/aprsnotify/wiki</a></b> <br><br>
+        <a href="../">Return to Main Menu</a> <br><br>
+
+        <h2>Configure Various API Keys</h2>
+        <table border=1>
+
+            {% for row in apikeys %}
+            <tr>
+                <form action="{{url_for('update_api_keys') }}" method="POST">
+                    <input type = "hidden" name="app" value="aprsfi">
+                <td>APRS.fi API Key:</td><td><input type="text" name="aprsfikey" size="50" value="{{ row[0] }}"><br>
+                    <input type="submit" name="submit" value="Update Key">
+                    <input type="submit" name="submit" value="Clear">
+                </td>
+                </form>
+            </tr>
+            {% endfor %}
+
+            {% for row in apikeys %}
+            <tr>
+                <form action="{{url_for('update_api_keys') }}" method="POST">
+                    <input type = "hidden" name="app" value="openweathermap">
+                <td>Openweathermap API Key:</td><td><input type="text" name="openweathermapkey" size="50" value="{{ row[1] }}"><br>
+                    <input type="submit" name="submit" value="Update Key">
+                    <input type="submit" name="submit" value="Clear">
+                </td>
+                </form>
+            </tr>
+            {% endfor %}
+
+        </table>
+
+    </body>
+</html>

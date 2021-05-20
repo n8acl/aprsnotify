@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <title>
+            APRSNotify Configuration Utility
+        </title>
+    </head>
+    <body>
+        <h1>{{ page_title }}</h1>
+        <b>For help please see the APRSnotify Wiki: <br>
+        <a href="https://github.com/n8acl/aprsnotify/wiki" target="top">https://github.com/n8acl/aprsnotify/wiki</a></b> <br><br>
+        <a href="../">Return to Main Menu</a> <br><br>
+
+        <h2>Configure Callsign Lists</h2>
+            POS = Position Tracking<br>
+            MSG = Message Tracking<br>
+            WX = Weather Station Tracking<br>
+            -----------------------------<br><br>
+
+            Current POS Callsign List: 
+            
+            {% for row in poscallsignlist %}
+                {{row[0]}}, 
+            {% endfor %}
+            <br>
+
+            Current MSG Callsign List: 
+            {% for row in msgcallsignlist %}
+                {{row[0]}}, 
+            {% endfor %}
+            <br>
+
+            Current WX Callsign List: 
+            {% for row in wxcallsignlist %}
+                {{row[0]}}, 
+            {% endfor %}            
+            <br>
+
+            <br>
+            <form action="{{url_for('update_callsign_lists') }}" method="POST">
+                <input type="radio" name="function" value = "1" checked>Add to <input type="radio" name="function" value = "0">Delete from the<br>
+                <input type="radio" name="listtype" value = "POS" checked>POS <input type="radio" name="listtype" value = "MSG">MSG <input type="radio" name="listtype" value = "WX">WX 
+                callsign list <br>
+                the callsign(s) below (seperate multiple callsigns with commas):<br>
+                <input type="text" name="callsignlist" size="50">
+                <br>
+                <input type="submit" name="submit" value="Update Callsign List">
+            </form>
+    </body>
+</html>

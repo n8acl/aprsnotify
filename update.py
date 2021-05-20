@@ -1,0 +1,132 @@
+# Import libraries
+import sqlite3
+import os
+from os import system, name
+from sqlite3 import Error
+
+# Define Variables
+version = 5.0
+database = os.path.dirname(os.path.abspath(__file__)) +  "/aprsnotify.db"
+linefeed = "\n"
+linebreak = "------------------------------------------------------"
+title_line = "APRSNotify Version " + str(version) + " Update Utility"
+
+
+# Define Functions
+def clear_screen(): # Defines function to clear the screen to make output easier to read
+    if name == 'nt': # windows
+        _ = system('cls')
+    else: # MacOS (The Second best operating system ever) and Linux (The best operating system ever)
+        _ = system('clear')
+
+def create_connection(db_file):
+    """ create a database connection to a SQLite database """
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+        #print(sqlite3.version)
+    except Error as e:
+        print(e)
+    return conn
+
+def run_sql(conn,sql):
+    # Executes SQL for Updates, inserts and deletes
+    cur = conn.cursor()
+    cur.execute(sql)
+    conn.commit()
+
+def select_sql(conn, sql):
+    # Executes SQL for Selects - Returns a "value"
+    cur = conn.cursor()
+    cur.execute(sql)
+    return cur.fetchall()
+
+## Main Program
+
+conn = create_connection(database)
+
+# Install new Dependenacies
+os.system("pip3 install discord-webhook")
+os.system("pip3 install matterhook")
+
+# Add new columns to database
+sql = """
+Alter table apikeys add discord_webhook_url text null;
+"""
+run_sql(conn, sql)
+
+sql = """
+Alter table apikeys add mattermost_webhook_url text null;
+"""
+run_sql(conn, sql)
+
+sql = """
+Alter table config add send_to_discord int;
+"""
+run_sql(conn, sql)
+
+sql = """
+Alter table config add send_to_mattermost int;
+"""
+run_sql(conn, sql)
+
+sql = """
+update config set send_to_discord = 0;
+"""
+run_sql(conn, sql)
+
+sql = """
+update config set send_to_mattermost = 0;
+"""
+run_sql(conn, sql)
+
+sql = """ create table if not exists callsignlists (
+callsign text null,
+listtype text null
+); """
+
+run_sql(conn, sql)
+
+sql = """insert into callsignlists (callsign, listtype) 
+select callsign, 'POS' from pos_callsigns
+union
+select callsign, 'MSG' from msg_callsigns
+union
+select callsign, 'WX' from wx_callsigns;
+"""
+
+run_sql(conn, sql)
+
+sql = """drop table pos_callsigns;"""
+
+run_sql(conn, sql)
+
+sql = """drop table msg_callsigns;"""
+
+run_sql(conn, sql)
+
+sql = """drop table wx_callsigns;"""
+
+run_sql(conn, sql)
+
+sql = """drop table anutilmenu;"""
+
+run_sql(conn, sql)
+
+sql = """drop view vw_config_menu;"""
+
+run_sql(conn, sql)
+
+sql = "update config set version = " + str(version) + ";"
+
+run_sql(conn, sql)
+
+checksendtoall = select_sql(conn,"select send_to_all from config")
+
+if checksendtoall[0][0] == 1:
+    sql = "update config set "
+    sql = sql + "send_to_twitter = 1, "
+    sql = sql + "send_to_telegram = 1, "
+    sql = sql + "send_to_mastodon = 1;"
+
+    run_sql(conn, sql)

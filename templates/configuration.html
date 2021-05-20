@@ -1,0 +1,95 @@
+<html>
+    <head>
+        <title>
+            APRSNotify Configuration Utility
+        </title>
+    </head>
+    <body>
+        <h1>{{ page_title }}</h1>
+        <b>For help please see the APRSnotify Wiki: <br>
+        <a href="https://github.com/n8acl/aprsnotify/wiki" target="top">https://github.com/n8acl/aprsnotify/wiki</a></b> <br><br>
+        <a href="../">Return to Main Menu</a> <br><br>
+
+       <h2>Miscellanious Configuration Settings</h2>
+            <form action="{{url_for('update_configs') }}" method="POST">
+        <table border=1>
+
+            {% for row in configs %}
+            <tr>
+                <td>
+                    <table border = 0>
+                        <tr>
+                            <td>Units to Use:</td>
+                            <td>
+                                {% if row[0] == 1: %}
+                                    <input type="radio" name="units_to_use" value = "1" checked>Imperial <input type="radio" name="units_to_use" value = "2" >Metric
+                                {% else %}
+                                    <input type="radio" name="units_to_use" value = "1">Imperial <input type="radio" name="units_to_use" value = "2" checked>Metric
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border=0>
+                        <tr>
+                            <td>Include Weather in Status:</td>
+                            <td>
+                                {% if row[1] == 1: %}
+                                    <input type="radio" name="include_wx" value = "1" checked>Yes <input type="radio" name="include_wx" value = "0" >No
+                                {% else %}
+                                    <input type="radio" name="include_wx" value = "1">Yes <input type="radio" name="include_wx" value = "0" checked>No
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border=0>
+                        <tr>
+                            <td>Send Position Data:</td>
+                            <td>
+                                {% if row[2] == 1: %}
+                                    <input type="radio" name="send_position_data" value = "1" checked>Yes <input type="radio" name="send_position_data" value = "0" >No
+                                {% else %}
+                                    <input type="radio" name="send_position_data" value = "1">Yes <input type="radio" name="send_position_data" value = "0" checked>No
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border=0>
+                        <tr>
+                            <td>Send Weather Data:</td>
+                            <td>
+                                {% if row[3] == 1: %}
+                                    <input type="radio" name="send_weather_data" value = "1" checked>Yes <input type="radio" name="send_weather_data" value = "0" >No
+                                {% else %}
+                                    <input type="radio" name="send_weather_data" value = "1">Yes <input type="radio" name="send_weather_data" value = "0" checked>No
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan = 2><center>
+                    <input type="submit" name="submit" value="Update Configs">
+                    <input type="submit" name="submit" value="Clear">
+                    </center>
+                </td>
+                </form>
+            </tr>
+            {% endfor %}
+
+        </table>
+
+    </body>
+</html>

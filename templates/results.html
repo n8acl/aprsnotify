@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <title>
+            APRSNotify Configuration Utility
+        </title>
+    </head>
+    <body>
+        <h1>{{ page_title }}</h1>
+        <b>For help please see the APRSnotify Wiki: <br>
+        <a href="https://github.com/n8acl/aprsnotify/wiki" target="top">https://github.com/n8acl/aprsnotify/wiki</a></b> <br><br>
+        {{ header }}<br>
+        {{ msg }} 
+        <br><br>
+        {% if page == "smkeys"%}
+        <a href="../smkeys">Return to Social Media Service Page</a>
+        {% elif page == "otherapikeys" %}
+        <a href="../otherapikeys">Return to Various API Keys Page</a>
+        {% elif page == "configuration" %}
+        <a href="../configuration">Return to Main Program Configuration Page</a>
+        {% elif page == "callsignlists" %}
+        <a href="../callsignlists">Return to Callsign Lists Configuration Page</a>
+        {% else %}
+        <a href="../">Return to Main Menu</a>        
+        {% endif %}
+      
+   </body>
+</html>

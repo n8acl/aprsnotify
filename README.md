@@ -1,13 +1,21 @@
 # APRSNotify
-APRSNotify is a python based bot script designed to send parsed APRS packet data to Twitter, Telegram and/or Mastodon.
+APRSNotify is a python based bot script designed to send parsed APRS packet data to various Social Media or Communications networks.
 
 This software is for use by Amateur Radio Operators only.
+
+This bot was designed to be used by one person with multiple APRS Trackers to track packets for that one person.
 
 Please see the Wiki for more information and installation and configuration.
 
 ##### Working Examples:
 - Twitter: @n8acl_aprs
 - Mastodon: You will need to follow n8acl_aprs@botsin.space.
+
+##### Currently Supported Networks
+  - Twitter
+  - Telegram
+  - Mastodon
+  - Discord
 
 ---
 
@@ -16,9 +24,9 @@ Please see the Wiki for more information and installation and configuration.
   - Position Data
   - Weather Station Data
 - Reverse Geocode with OpenStreetMaps API.
-- Get Weather Information from OpenWeatherMaps API for the location of the position packet
+- Get Weather Conditions from OpenWeatherMaps API for the location of the position packet
 - Find Maidenhead Grid Square of packet location.
-- Send Status to Social Media Networks (currently Twitter, Telegram and Mastodon)
+- Send Status to Social Media Networks (See above for supported Networks)
 - Get notification of an APRS message sent to your station (requires Telegram to work). If someone sends a message via APRS to one of the callsigns being tracked, the script will notify you and show you the message on Telegram.
 
 ---
@@ -27,24 +35,24 @@ Please see the Wiki for more information and installation and configuration.
 * Sending an APRS packet to Twitter/Mastodon for your followers to see.
 * Sending Weather data from APRS to Social Media.
 * Sending APRS data to yourself to confirm that it is making it to the internet (via Telegram for example).
-* Sending your position information to a Telegram Channel that you have your non-ham radio family and friends on so they can track you when you are traveling by car for a long distance.
+* Sending your position information to a Telegram/Discord Channel that you have your non-ham radio family and friends on so they can track you when you are traveling by car for a long distance.
 * Sending your APRS data to a club Mastodon Instance feed for the club to see.
-* Sending position data to a radio club Telegram Channel so that everyone can see your data posted.
+* Sending position data to a radio club Telegram/Discord Channel so that everyone can see your data posted. Multiple people can use the same bot keys for a club channel to share the information from each of their respective scripts.
 * Other uses that your imagination comes up with.
 
 ---
 
-## UPGRADE TO VERSION 4.0
+## UPGRADE TO VERSION 5.0
 
-To upgrade to version 4.0 of the script, please run the updatev4.py script. It will pull in everything from the old config.py file that it can. 
+To upgrade to version 5.0 of the script, please run the update.py script. It will update your database to the most current version. 
 
-Please make sure to backup the config.py file before cloning the repo again to get the latest script files. It shouldn't delete it, but it may, so please make sure to backup the config file first and then copy it back in if needed before running updatev4.py.
+If you are installing the whole script for the first time (i.e. have never used APRSNotify before), do not run this script, but please run an_util.py. Only run this upgrade if you have used APRSNotify before and have previously upgraded to version 4.
 
-If you are installing the whole script for the first time (i.e. have never used APRSNotify before), do not run this script, but please run an_util.py. Only run this upgrade if you have used APRSNotify before and have an existing config.py file.
+#### Upgrading a version older than Version 4 to current Version 5
 
-Due to some changes to meet the APRS.fi API requirements, I have had to split the callsign list into 3 lists, a postion tracking list, a message notification list and now, if you have a weather station that puts weather data on APRS, a weather station tracking list. There can only be 20 callsigns to track positions with and 10 to get messages with. Because of this, we cannot automtically bring the lists in and will need you to reenter them when asked by the update utility.
+Please note that any version prior to 4 has had to be depreciated and is no longer supported. With all the changes, it is difficult to support those older versions with the new version.
 
-The update utility will also ask if you want to send the status to Mastodon, then ask you to set that up. Please make sure that you have followed the directions in the wiki to obtain the API keys for Mastodon if you are going to use that before running the update script. 
+The easiest way to upgrade a version of APRSNotify that is older than Version 4 is to make sure to backup the config.py file to another location and then deleting the old APRSnotify script folder. Then clone the repo to get the latest script files. This allows you to setup the script as basically a brand new setup, just follow the directions in the wiki for a new setup and using the an_util.py file. You can use your old config.py file as reference to copy and paste your keys and things in as needed.
 
 ---
 
@@ -59,6 +67,8 @@ The map image functionality for the Telegram Bot and suggestions to include or n
 
 APRS.FI API Limitations issues found and troubleshot by [Alex Bowman, KN4KNG](https://github.com/KN4KNG). 
 
+Installation of the Verison 4 scripts troubleshot by Diego, EA3ICN.
+
 APRS and the APRS System and associated copyright were developed by Bob Bruninga, WB4APR [http://www.aprs.org](http://www.aprs.org).
 
 ---
@@ -69,7 +79,7 @@ If you have questions, please feel free to reach out to me. You can reach me in 
 - Twitter: @n8acl
 - Telegram: @ravendos
 - Mastodon: @n8acl@mastodon.radio
-- E-mail: n8acl@protonmail.com
+- E-mail: n8acl@qsl.net
 
 Or open an issue on Github. I will respond to it, and of course you, when I can. Remember, this is a hobby and there are other daily distractors that come first, like work, school and family.
 
@@ -78,6 +88,13 @@ If you reach out to me and have an error, please include what error you are gett
 ---
 
 ## Change Log
+* 05/19/2021 - Version 5.0 Release
+  - Update of APRSNotify Database to consolidate callsign lists to one table
+  - Redesign of an_util.py into a Flask app to allow for web browser based GUI to configure the script.
+  - Addition of Discord to supported networks.
+  - Automatically does not send a map image with WX Station Data or message notification to Telegram
+  - Updated Wiki with new information.
+
 * 01/15/2021 - Version 4.0 Release
     - Removal of APRSBot to a different project
     - Moved from text files for data storage to SQLlite3 Database

@@ -2,15 +2,15 @@
 
 # APRSNotify
 # Developed by: Jeff Lehman, N8ACL
-# Current Version: 4.0
+# Current Version: 5.0
 # https://github.com/n8acl/aprsnotify
 
 # Questions? Comments? Suggestions? Contact me one of the following ways:
-# E-mail: n8acl@protonmail.com
+# E-mail: n8acl@qsl.net
 # Twitter: @n8acl
 # Telegram: @Ravendos
 # Mastodon: @n8acl@mastodon.radio
-# Website: https://n8acl.ddns.net
+# Website: https://www.qsl.net/n8acl
 
 ###################   DO NOT CHANGE BELOW   #########################
 
@@ -46,18 +46,20 @@ try:
     from mastodon import Mastodon
 except ImportError:
     exit('This script requires the mastodon.py module\nInstall with: pip3 install mastodon.py')
+try:
+    from discord_webhook import DiscordWebhook
+except ImportError:
+    exit('This script requires the discord_webhook module\nInstall with: pip3 install discord_webhook')
 
 ######################################################################################################################
 # Define Variables and static objects
 
-version = 4.0
 degree_sign= u'\N{DEGREE SIGN}'
 fixed_station = 0
 aprsfi_api_base_url = "https://api.aprs.fi/api/get"
 owm_api_base_url = "http://api.openweathermap.org/data/2.5/weather"
 geolocator = Nominatim(user_agent="aprstweet")
 db_file = os.path.dirname(os.path.abspath(__file__)) + "/aprsnotify.db"
-setup = os.path.dirname(os.path.abspath(__file__)) + "/new.py"
 linefeed = "\n"
 pos_callsign_list = []
 msg_callsign_list = []
@@ -148,25 +150,45 @@ def get_grid(dec_lat, dec_lon):
 
     return grid_lon_sq + grid_lat_sq + grid_lon_field + grid_lat_field + grid_lon_subsq + grid_lat_subsq
 
-def send_status(msg,lat,lng):
+def send_status(msg, msg_type, lat,lng):
+    # msg_types
+    # 1: Postion Data
+    # 2: Weather Data
+    # 3: APRS message
+
     # Create status for microblogs (Twitter, Mastodon)
     micro_status = msg + " #APRS"
 
     # Send status to various services
-    if (send_to_all == 1 or send_to_twitter == 1): # Send Status to Twitter
+    if (send_to_twitter == 1): # Send Status to Twitter
+        auth = OAuthHandler(twitterkeys["consumer_key"], twitterkeys["consumer_secret"])
+        auth.set_access_token(twitterkeys["access_token"], twitterkeys["access_secret"])
+        twitter_api = tweepy.API(auth)
         twitter_api.update_status(micro_status)
 
-    if (send_to_all == 1 or send_to_telegram == 1): # Send Status to Telegram
-        tele_bot_message(msg)
-        if (include_map_image == 1): # Includes a map of the packet location in Telegram
-            bot.sendLocation(chat_id=telegramkeys["my_chat_id"], latitude=lat, longitude=lng, disable_notification=True)
+    if (send_to_telegram == 1): # Send Status to Telegram
+        tele_bot_message(msg, msg_type)
 
-    if (send_to_all == 1 or send_to_mastodon == 1): # Send Status to Mastodon
+    if (send_to_mastodon == 1): # Send Status to Mastodon
+        mastodon_api = Mastodon(mastodonkeys["client_id"], mastodonkeys["client_secret"], mastodonkeys["user_access_token"], api_base_url=mastodonkeys["api_base_url"])
         mastodon_api.toot(micro_status)
 
-def tele_bot_message(msg):
+    if (send_to_discord == 1): # Send Status to Discord
+        webhook = DiscordWebhook(url=discord_wh_url, content=msg)
+        response = webhook.execute()    
+
+
+def tele_bot_message(msg, msg_type):
+    # msg_types
+    # 1: Postion Data
+    # 2: Weather Data
+    # 3: APRS message
+
     # Sends the message text to Telegram. This is used for both status and message sending
+    bot = telegram.Bot(token=telegramkeys["my_bot_token"])
     bot.sendMessage(chat_id=telegramkeys["my_chat_id"], text=msg)
+    if (include_map_image == 1 and msg_type not in [2,3]): # Includes a map of the packet location in Telegram
+        bot.sendLocation(chat_id=telegramkeys["my_chat_id"], latitude=lat, longitude=lng, disable_notification=True)
 
 
 ######################################################################################################################
@@ -175,9 +197,9 @@ def tele_bot_message(msg):
 if not os.path.exists(db_file):
     print(linefeed + "******** Your Database for APRSNotify is not configured. Please run an_util.py ********" + linefeed)
     sys.exit()
-else:
-    if os.path.exists(setup):
-        os.remove(setup)
+# else:
+#     if os.path.exists(setup):
+#         os.remove(setup)
 
 
 ######################################################################################################################
@@ -187,19 +209,19 @@ else:
 conn = create_connection(db_file)
 
 # Build Position Callsign list
-result = select_sql(conn, "select callsign from pos_callsigns")
+result = select_sql(conn, "select callsign from callsignlists where listtype = 'POS';")
 
 for row in result:
     pos_callsign_list.append(row[0])
 
 # Build Message Callsign list
-result = select_sql(conn, "select callsign from msg_callsigns")
+result = select_sql(conn, "select callsign from callsignlists where listtype = 'MSG';")
 
 for row in result:
     msg_callsign_list.append(row[0])
 
 # Build Weather Station Callsign list
-result = select_sql(conn, "select callsign from wx_callsigns")
+result = select_sql(conn, "select callsign from callsignlists where listtype = 'WX';")
 
 for row in result:
     wx_callsign_list.append(row[0])
@@ -218,7 +240,9 @@ openweathermapkey,
 mastodon_client_id,
 mastodon_client_secret,
 mastodon_api_base_url,
-mastodon_user_access_token
+mastodon_user_access_token,
+discord_webhook_url,
+mattermost_webhook_url
 from apikeys"""
 
 result = select_sql(conn, sql)
@@ -245,11 +269,12 @@ for row in result:
 
     aprsfikey = row[6]
     openweathermapkey = row[7]
+    discord_wh_url = row[12]
+    mm_wh_url = row[13]
 
 # Get config switches from database
 
 sql = """select 
-    send_to_all,
     send_to_twitter,
     send_to_telegram,
     send_to_mastodon,
@@ -258,22 +283,25 @@ sql = """select
     include_map_image,
     include_wx,
     send_position_data,
-    send_weather_data
+    send_weather_data,
+    send_to_discord,
+    send_to_mattermost
 from config"""
 
 result = select_sql(conn, sql)
 
 for row in result:
-    send_to_all = row[0]
-    send_to_twitter = row[1]
-    send_to_telegram = row[2]
-    send_to_mastodon = row[3]
-    units_to_use = row[4]
-    enable_aprs_msg_notify = row[5]
-    include_map_image = row[6]
-    include_wx = row[7]
-    send_position_data = row[8]
-    send_weather_data = row[9]
+    send_to_twitter = row[0]
+    send_to_telegram = row[1]
+    send_to_mastodon = row[2]
+    units_to_use = row[3]
+    enable_aprs_msg_notify = row[4]
+    include_map_image = row[5]
+    include_wx = row[6]
+    send_position_data = row[7]
+    send_weather_data = row[8]
+    send_to_discord = row[9]
+    send_to_mattermost = row[10]
 
 # Get stamp data from database
 sql = """select 
@@ -312,23 +340,6 @@ wx_payload = {
     'apikey': aprsfikey,
     'format': 'json'
 }
-
-######################################################################################################################
-# API Object Configurations for Social Media Networks
-
-# Twitter API Object Configuration
-if (send_to_all == 1 or send_to_twitter == 1):
-    auth = OAuthHandler(twitterkeys["consumer_key"], twitterkeys["consumer_secret"])
-    auth.set_access_token(twitterkeys["access_token"], twitterkeys["access_secret"])
-    twitter_api = tweepy.API(auth)
-
-# Telegram Bot/API Configuration
-if (send_to_all == 1 or send_to_telegram == 1):
-    bot = telegram.Bot(token=telegramkeys["my_bot_token"])
-
-# Mastodon API Object Configuration
-if (send_to_all == 1 or send_to_mastodon == 1):
-    mastodon_api = Mastodon(mastodonkeys["client_id"], mastodonkeys["client_secret"], mastodonkeys["user_access_token"], api_base_url=mastodonkeys["api_base_url"])
 
 ######################################################################################################################
 # Main Program
@@ -384,8 +395,9 @@ if send_position_data == 1:
             " | https://aprs.fi/" + station
         
         if debug == 0:
-            send_status(status,lat,lng) # Send status to Social Networks
+            send_status(status,1,lat,lng) # Send status to Social Networks
         else:
+            #send_status(status,lat,lng) # Send status to Social Networks
             print(status) # Send to Screen (for debugging)
 
 ###########################################
@@ -495,7 +507,7 @@ if send_weather_data == 1:
         status = status + "https://aprs.fi/" + station
         
         if debug == 0:
-            send_status(status,lat,lng) # Send status to Social Networks
+            send_status(status,2,lat,lng) # Send status to Social Networks
         else: 
             print(status) # Send to Screen (for debugging)
 
@@ -527,7 +539,7 @@ if enable_aprs_msg_notify == 1:
         # create msg status and send to Telegram
         msg_status = "On " + msg_datestamp + " at " + msg_timestamp + " " + srccall + " sent " + dstcall + " the following APRS message: " + linefeed + msg
         if debug == 0:
-            tele_bot_message(msg_status)
+            tele_bot_message(msg_status,3)
         else:
             print(msg_status) # Send to Screen (for debugging)
 
