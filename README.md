@@ -5,7 +5,7 @@ This software is for use by Amateur Radio Operators only.
 
 This bot was designed to be used by one person with multiple APRS Trackers to track packets for that one person.
 
-Please see the Wiki for more information and installation and configuration.
+Please see [the Wiki](https://github.com/n8acl/aprsnotify/wiki) for more information and [installation](https://github.com/n8acl/aprsnotify/wiki/Installation) and [configuration](https://github.com/n8acl/aprsnotify/wiki/Configuration-Utility-Walkthrough) steps.
 
 ##### Working Examples:
 - Twitter: @n8acl_aprs
