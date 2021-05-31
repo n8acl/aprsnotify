@@ -37,7 +37,7 @@ Please see [the Wiki](https://github.com/n8acl/aprsnotify/wiki) for more informa
 * Sending APRS data to yourself to confirm that it is making it to the internet (via Telegram for example).
 * Sending your position information to a Telegram/Discord Channel that you have your non-ham radio family and friends on so they can track you when you are traveling by car for a long distance.
 * Sending your APRS data to a club Mastodon Instance feed for the club to see.
-* Sending position data to a radio club Telegram/Discord Channel so that everyone can see your data posted. Multiple people can use the same bot keys for a club channel to share the information from each of their respective scripts.
+* Sending position data to a radio club Telegram/Discord Channel so that everyone can see your data posted. 
 * Other uses that your imagination comes up with.
 
 ---
@@ -88,6 +88,9 @@ If you reach out to me and have an error, please include what error you are gett
 ---
 
 ## Change Log
+* 05/30/2021
+  - Minor updates to README and the wiki. 
+
 * 05/19/2021 - Version 5.0 Release
   - Update of APRSNotify Database to consolidate callsign lists to one table
   - Redesign of an_util.py into a Flask app to allow for web browser based GUI to configure the script.
