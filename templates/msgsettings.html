@@ -1,0 +1,122 @@
+<html>
+    <head>
+        <title>
+            APRSNotify Configuration Utility
+        </title>
+    </head>
+    <body>
+        <h1>{{ page_title }}</h1>
+        <b>For help please see the APRSnotify Wiki: <br>
+        <a href="https://github.com/n8acl/aprsnotify/wiki" target="top">https://github.com/n8acl/aprsnotify/wiki</a></b> <br><br>
+        <a href="../">Return to Main Menu</a> <br><br>
+
+        <h2>Configure Messaging Notification Services</h2>
+        <table border=1>
+            <tr>    
+                <tr>
+                <td valign = "top"> <!-- Telegram Settings -->
+                    <form action="{{url_for('update_msg_settings') }}" method="POST">
+                        <input type = "hidden" name="app" value="telegram">
+                    <table border=0>
+                        {% for config_row in config_settings %}
+                            <tr>
+                                <td colspan = 2><b>Telegram Settings</b><br>Enable Message Notification to Telegram? 
+                            {% if config_row[0] == True: %}
+                                <input type="radio" name="aprsmsg_notify_telegram" value = "1" checked>Yes <input type="radio" name="aprsmsg_notify_telegram" value = "0" >No
+                            {% else %}
+                                <input type="radio" name="aprsmsg_notify_telegram" value = "1">Yes <input type="radio" name="aprsmsg_notify_telegram" value = "0" checked>No
+                            {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}    
+                        {% for row in telegram_keys %}
+                            <tr>
+                            <td>Bot Token:</td><td><input type="text" name="telegram_bot_token" size="50" value="{{ row[0] }}"> </td>
+                            </tr>
+                            <tr>
+                            <td>My Chat ID:</td><td><input type="text" name="telegram_my_chat_id" size="50" value="{{ row[1] }}"></td>
+                            </tr>
+                            <tr>
+                            <td colspan=2>
+                                <input type="submit" name="submit" value="Submit">
+                                <input type="submit" name="submit" value="Clear">
+                            </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                    </form>
+                </td>
+            </tr>
+            <tr>
+                <td valign= "top"> <!-- Discord Settings -->
+                    <form action="{{url_for('update_msg_settings') }}" method="POST">
+                        <input type = "hidden" name="app" value="discord">
+                    <table border=0>
+                        {% for config_row in config_settings %}
+                            <tr>
+                                <td colspan = 2><b>Discord Settings</b><br>Enable Message Notification to Discord? 
+                            {% if config_row[1] == True: %}
+                                <input type="radio" name="aprsmsg_notify_discord" value = "1" checked>Yes <input type="radio" name="aprsmsg_notify_discord" value = "0" >No
+                            {% else %}
+                                <input type="radio" name="aprsmsg_notify_discord" value = "1">Yes <input type="radio" name="aprsmsg_notify_discord" value = "0" checked>No
+                            {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}    
+                        
+                        {% for row in discord_keys %}
+                            <tr>
+                            <td>Message Notification Channel Webhook URL:</td><td><input type="text" name="discord_aprsmsg_wh_url" size="50" value="{{ row[0] }}"> </td>
+                            </tr>
+                            <tr>
+                            <td colspan=2>
+                                <input type="submit" name="submit" value="Submit">
+                                <input type="submit" name="submit" value="Clear">
+                            </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                    </form>
+                </td>
+                </tr>
+                <tr>
+                    <td valign= "top"> <!-- Pushover Settings -->
+                        <form action="{{url_for('update_msg_settings') }}" method="POST">
+                            <input type = "hidden" name="app" value="pushover">
+                        <table border=0>
+                            {% for config_row in config_settings %}
+                                <tr>
+                                    <td colspan = 2><b>Pushover Settings</b><br>Enable Message Notification to Pushover? 
+                                {% if config_row[1] == True: %}
+                                    <input type="radio" name="aprsmsg_notify_pushover" value = "1" checked>Yes <input type="radio" name="aprsmsg_notify_pushover" value = "0" >No
+                                {% else %}
+                                    <input type="radio" name="aprsmsg_notify_pushover" value = "1">Yes <input type="radio" name="aprsmsg_notify_pushover" value = "0" checked>No
+                                {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}    
+                            
+                            {% for row in pushover_keys %}
+                                <tr>
+                                <td>Pushover Token:</td><td><input type="text" name="pushover_token" size="50" value="{{ row[0] }}"> </td>
+                                </tr>
+                                <tr>
+                                <td>Pushover User Key:</td><td><input type="text" name="pushover_userkey" size="50" value="{{ row[1] }}"> </td>
+                                </tr>
+                                <tr>
+                                <td colspan=2>
+                                    <input type="submit" name="submit" value="Submit">
+                                    <input type="submit" name="submit" value="Clear">
+                                </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                        </form>
+                    </td>
+                    </tr>
+
+
+        </table>
+
+    </body>
+</html>

@@ -16,20 +16,28 @@
             WX = Weather Station Tracking<br>
             -----------------------------<br><br>
 
-            Current POS Callsign List: 
+            Current POS Callsign List ({% for row in poscnt %}
+                {{row[0]}}
+            {% endfor %}):
             
             {% for row in poscallsignlist %}
                 {{row[0]}}, 
             {% endfor %}
             <br>
 
-            Current MSG Callsign List: 
+            Current MSG Callsign List ({% for row in msgcnt %}
+                {{row[0]}}
+            {% endfor %}):
+
             {% for row in msgcallsignlist %}
                 {{row[0]}}, 
             {% endfor %}
             <br>
 
-            Current WX Callsign List: 
+            Current WX Callsign List ({% for row in wxcnt %}
+                {{row[0]}}
+            {% endfor %}):
+
             {% for row in wxcallsignlist %}
                 {{row[0]}}, 
             {% endfor %}            

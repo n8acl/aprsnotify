@@ -5,3 +5,4 @@ requests
 aprslib
 mastodon.py
 discord_webhook
+matterhook
