@@ -446,7 +446,7 @@ if send_position_data:
         #Create Status Message
         status = station + ": "+ get_location(lat,lng)
             
-        if fixed_station:
+        if not fixed_station:
             if units_to_use == 1:
                 status = status + " | Speed: "+ str(speedkph) + " kph"
             else:
