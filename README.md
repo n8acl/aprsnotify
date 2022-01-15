@@ -90,6 +90,10 @@ If you reach out to me and have an error, please include what error you are gett
 
 ## Change Log
 
+* 01/15/2022 - Minor update
+  * Fixed error in message sending to Pushover
+  * Fixed error in packetstatus creation with fixed station
+
 * 01/12/2022 - Version 6.0 Release
   - Added support for Discord and Pushover for Message Notitification
   - Added Support for Mattermost for Position and Weather packet data
