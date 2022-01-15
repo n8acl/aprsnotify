@@ -614,7 +614,7 @@ if aprsmsg_notify_telegram or aprsmsg_notify_discord or aprsmsg_notify_pushover:
             if aprsmsg_notify_telegram:
                 send_telegram(msg_status,3)
             if aprsmsg_notify_discord:
-                send_discord(msg_status,discord_aprsmsg_wh_url)
+                send_discord(msg_status,discordwh["aprsmsg_wh_url"])
             if aprsmsg_notify_pushover:
                 send_pushover(msg_status)
         else:
