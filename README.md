@@ -90,6 +90,9 @@ If you reach out to me and have an error, please include what error you are gett
 
 ## Change Log
 
+* 01/16/2022
+  * Fixed issue with weather part of the status message
+
 * 01/15/2022 - Minor update
   * Fixed error in message sending to Pushover
   * Fixed error in packetstatus creation with fixed station
