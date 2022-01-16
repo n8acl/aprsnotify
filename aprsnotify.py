@@ -131,7 +131,7 @@ def get_curr_wx(lat, lon):
     }
     
     data = get_api_data_payload(owm_api_base_url,owm_payload)
-    return data['weather'][0]['main'], data['temp'] # Conditions, temp
+    return data['weather'][0]['main'], data['main']['temp'] # Conditions, temp
 
 def get_location(lat,lng):
     # Reverse geocode with openstreetmaps for location
