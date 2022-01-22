@@ -94,7 +94,7 @@ If you reach out to me and have an error, please include what error you are gett
 
 ## Change Log
 
-* 01/21/2022 - Release 01212022
+* 01/21/2022 - Release 01222022
   - Added Support for Slack
   - Added Messaging support for Mattermost, Slack
   - Added Support to send to Club Servers (See above networks table for supported networks)
