@@ -45,7 +45,7 @@ Please see [the Wiki](https://github.com/n8acl/aprsnotify/wiki) for more informa
 
 ---
 
-## UPGRADE TO RELEASE 01212022
+## UPGRADE TO RELEASE 01222022
 
 To upgrade to the current version of the script, please run the update.py script. It will update your database to the most current version.
 
