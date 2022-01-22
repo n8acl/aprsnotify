@@ -2,7 +2,7 @@
 
 # APRSNotify
 # Developed by: Jeff Lehman, N8ACL
-# Current Version: 6.0
+# Current Version: 01222022
 # https://github.com/n8acl/aprsnotify
 
 # Questions? Comments? Suggestions? Contact me one of the following ways:
@@ -48,7 +48,7 @@ try:
 except ImportError:
     exit('This script requires the mastodon.py module\nInstall with: pip3 install mastodon.py')
 try:
-    from discord_webhook import DiscordWebhook
+    from discord_webhook import DiscordWebhook, DiscordEmbed
 except ImportError:
     exit('This script requires the discord_webhook module\nInstall with: pip3 install discord_webhook')
 try:
@@ -63,7 +63,7 @@ degree_sign= u'\N{DEGREE SIGN}'
 fixed_station = 0
 aprsfi_api_base_url = "https://api.aprs.fi/api/get"
 owm_api_base_url = "http://api.openweathermap.org/data/2.5/weather"
-geolocator = Nominatim(user_agent="aprstweet")
+geolocator = Nominatim(user_agent="aprsnotify")
 db_file = os.path.dirname(os.path.abspath(__file__)) + "/aprsnotify.db"
 linefeed = "\n"
 pos_callsign_list = []
@@ -169,28 +169,6 @@ def get_grid(dec_lat, dec_lon):
 
     return grid_lon_sq + grid_lat_sq + grid_lon_field + grid_lat_field + grid_lon_subsq + grid_lat_subsq
 
-def send_status(msg, msg_type, lat,lng):
-    # msg_types
-    # 1: Postion Data
-    # 2: Weather Data
-    # 3: APRS message
-
-    # Send status to various services
-    if twitter: # Send Status to Twitter
-        send_twitter(msg)
-
-    if telegram: # Send Status to Telegram
-       send_telegram(msg, msg_type, lat,lng)
-
-    if mastodon: # Send Status to Mastodon
-        send_mastodon(msg)
-
-    if discord: # Send Status to Discord
-        send_discord(msg, discordwh["poswx_wh_url"])
-
-    if mattermost: # Send Status to Mattermost
-        send_mattermost(msg)
-
 def send_twitter(msg):
 
     micro_status = msg + " #APRS"
@@ -201,17 +179,20 @@ def send_twitter(msg):
     twitter_api.update_status(micro_status)
     
 
-def send_telegram(msg, msg_type, lat,lng):
+def send_telegram(msg, msg_type, lat,lng, bot_token, chat_id):
     # msg_types
     # 1: Postion Data
     # 2: Weather Data
     # 3: APRS message
 
     # Sends the message text to Telegram. This is used for both status and message sending
-    bot = telegram.Bot(token=telegramkeys["my_bot_token"])
-    bot.sendMessage(chat_id=telegramkeys["my_chat_id"], text=msg)
+    bot = telegram.Bot(token=bot_token)
+    if msg_type in [1,2]:
+        bot.sendMessage(chat_id=chat_id, text=msg)
+    else:
+        bot.sendMessage(chat_id=chat_id, text=msg)
     if (include_map_image_telegram == 1 and msg_type not in [2,3]): # Includes a map of the packet location in Telegram
-        bot.sendLocation(chat_id=telegramkeys["my_chat_id"], latitude=lat, longitude=lng, disable_notification=True)
+        bot.sendLocation(chat_id=chat_id, latitude=lat, longitude=lng, disable_notification=True)
 
 def send_mastodon(msg):
 
@@ -220,11 +201,25 @@ def send_mastodon(msg):
     mastodon_api = Mastodon(mastodonkeys["client_id"], mastodonkeys["client_secret"], mastodonkeys["user_access_token"], api_base_url=mastodonkeys["api_base_url"])
     mastodon_api.toot(micro_status)
 
-def send_discord(msg,wh_url):
-    webhook = DiscordWebhook(url=wh_url, content=msg)
+def send_discord(msg,wh_url, msg_type):
+    # webhook = DiscordWebhook(url=wh_url, content=msg)
+    # response = webhook.execute() 
+
+    if msg_type == 1:
+        title = "Position Report"
+    elif msg_type == 2:
+        title = "Weather Report"
+    elif msg_type == 3:
+        title = "Message Notification"
+
+    webhook = DiscordWebhook(url=wh_url)
+
+    embed = DiscordEmbed(title=title, description=msg)
+    webhook.add_embed(embed)
+
     response = webhook.execute() 
 
-def send_mattermost(msg):
+def send_mattermost(msg,wh_url, api_key):
     mm_bot = Webhook(mattermostwh["wh_url"], mattermostwh["apikey"])
     mm_bot.send(msg)  
 
@@ -238,16 +233,35 @@ def send_pushover(msg):
         }), { "Content-type": "application/x-www-form-urlencoded" })
     connn.getresponse()
 
+def send_slack(msg,wh_url):
+    response = requests.post(
+        wh_url, data=json.dumps(msg),
+        headers={'Content-Type': 'application/json'}
+    )
+
+######################################################################################################################
+# Check for version arguement and return just the version
+
+if len(sys.argv)>1:
+    if sys.argv[1] == 'version':
+        sql = "select version from config;"
+
+        conn = create_connection(db_file)
+
+        result = select_sql(conn, sql)
+        for row in result:
+            print("APRSNotify Release " + row[0])
+        sys.exit()
+
+######################################################################################################################
+
+
 ######################################################################################################################
 # Check for first run
 
 if not os.path.exists(db_file):
     print(linefeed + "******** Your Database for APRSNotify is not configured. Please run an_util.py ********" + linefeed)
     sys.exit()
-# else:
-#     if os.path.exists(setup):
-#         os.remove(setup)
-
 
 ######################################################################################################################
 # Load Data from Database into variables
@@ -281,7 +295,7 @@ twitter_consumer_secret,
 twitter_access_token,
 twitter_access_secret,
 telegram_bot_token,
-telegram_my_chat_id,
+telegram_poswx_chat_id,
 aprsfikey,
 openweathermapkey,
 mastodon_client_id,
@@ -289,11 +303,22 @@ mastodon_client_secret,
 mastodon_api_base_url,
 mastodon_user_access_token,
 discord_poswx_wh_url,
-mattermost_webhook_url,
-mm_wh_api_key,
+mattermost_poswx_wh_url,
+mattermost_poswx_api_key,
 discord_aprsmsg_wh_url,
 pushover_token,
-pushover_userkey
+pushover_userkey,
+slack_poswx_wh_url,
+slack_aprsmsg_wh_url,
+mattermost_aprsmsg_wh_url,
+mattermost_aprsmsg_api_key,
+telegram_aprsmsg_chat_id,
+telegram_club_chat_id,
+telegram_club_bot_token,
+discord_club_wh_url,
+mattermost_club_wh_url,
+mattermost_club_api_key,
+slack_club_wh_url
 from apikeys"""
 
 result = select_sql(conn, sql)
@@ -308,7 +333,10 @@ for row in result:
 
     telegramkeys = {
         "my_bot_token": row[4], 
-        "my_chat_id": row[5]
+        "poswx_chat_id": row[5],
+        "aprsmsg_chat_id": row[20],
+        "club_bot_token": row[22],
+        "club_chat_id": row[21]
     }
 
     mastodonkeys = {
@@ -320,13 +348,17 @@ for row in result:
 
     discordwh = {
         "poswx_wh_url": row[12],
-        "aprsmsg_wh_url": row[15]
+        "aprsmsg_wh_url": row[15],
+        "club_wh_url": row[23]
     }
 
     mattermostwh = {
-        "wh_url": row[13],
-        "apikey": row[14]
-
+        "poswx_wh_url": row[13],
+        "poswx_apikey": row[14],
+        "msg_wh_url": row[13],
+        "msg_apikey": row[14],
+        "club_wh_url": row[24],
+        "club_apikey": row[25]
     }
 
     pushover = {
@@ -334,6 +366,13 @@ for row in result:
         "pushover_userkey": row[17]
 
     }
+
+    slackwh = {
+        "poswx_wh_url": row[18],
+        "aprsmsg_wh_url": row[19],
+        "club_wh_url": row[18]
+    }
+
 
     aprsfikey = row[6]
     openweathermapkey = row[7]
@@ -353,8 +392,14 @@ sql = """select
     send_weather_data,
     aprsmsg_notify_telegram,
     aprsmsg_notify_discord,
-    enable_aprsmsg_notify,
-    aprsmsg_notify_pushover
+    aprsmsg_notify_pushover,
+    aprsmsg_notify_mattermost,
+    aprsmsg_notify_slack,
+    slack,
+    club_telegram,
+    club_discord,
+    club_mattermost,
+    club_slack
 from config"""
 
 result = select_sql(conn, sql)
@@ -372,8 +417,14 @@ for row in result:
     send_weather_data = row[9]
     aprsmsg_notify_telegram = row[10]
     aprsmsg_notify_discord = row[11]
-    enable_aprsmsg_notify = row[12]
-    aprsmsg_notify_pushover = row[13]
+    aprsmsg_notify_pushover = row[12]
+    aprsmsg_notify_mattermost = row[13]
+    aprsmsg_notify_slack = row[14]
+    slack = row[15]
+    club_telegram = row[16]
+    club_discord = row[17]
+    club_mattermost = row[18]
+    club_slack = row[19]
 
 # Get stamp data from database
 sql = """select 
@@ -455,7 +506,7 @@ if send_position_data:
         status = status + " | Grid: " + get_grid(float(lat),float(lng))
         
         if include_wx:
-            #Get Weather Information
+            #Get Weather Data
             conditions, temp = get_curr_wx(lat, lng)
 
             if units_to_use == 1:
@@ -463,13 +514,55 @@ if send_position_data:
             else:
                 status = status + " | WX: "+ str(temp) + degree_sign + " F & " + conditions
 
-        status = status + " | " + datetime.datetime.fromtimestamp(int(lasttime)).strftime('%H:%M:%S') + \
-            " | https://aprs.fi/" + station
+        status = status + " | " + datetime.datetime.fromtimestamp(int(lasttime)).strftime('%H:%M:%S')
+
+        # Now finish off the status for Slack and everything else. The URL create method is different for Slack
+        slack_status = status + " | <https://aprs.fi/" + station + "|https://aprs.fi/" + station + ">"
+        status = status +  " | https://aprs.fi/" + station
+
+        msg_type = 1 # APRS Position Data
         
+        # Now we send the status
         if not debug:
-            send_status(status,1,lat,lng) # Send status to Social Networks
+                # msg_types
+                # 1: Postion Data
+                # 2: Weather Data
+                # 3: APRS message
+
+            # Send to a personal system
+            if twitter: # Send Status to Twitter
+                send_twitter(status)
+
+            if telegram: # Send Status to Telegram
+                send_telegram(status, msg_type, lat,lng, telegramkeys["my_bot_token"], telegramkeys["poswx_chat_id"])
+
+            if mastodon: # Send Status to Mastodon
+                send_mastodon(status)
+
+            if discord: # Send Status to Discord
+                send_discord(status, discordwh["poswx_wh_url"], msg_type)
+
+            if mattermost: # Send Status to Mattermost
+                send_mattermost(status, mattermostwh["poswx_wh_url"], mattermostwh["poswx_apikey"])
+
+            if slack: # Send Status to Slack
+                slack_msg = {'text': slack_status}
+                send_slack(slack_msg, slackwh["poswx_wh_url"])
+            
+            # See about sending to a club system            
+            if club_telegram: # Send Status to Telegram
+                send_telegram(status, 1, lat,lng, telegramkeys["club_bot_token"], telegramkeys["club_chat_id"])
+
+            if club_discord: # Send Status to Discord
+                send_discord(status, discordwh["club_wh_url"], msg_type)
+
+            if club_mattermost: # Send Status to Mattermost
+                send_mattermost(status, mattermostwh["club_wh_url"], mattermostwh["club_apikey"])
+
+            if club_slack: # Send Status to Slack
+                slack_msg = {'text': slack_status}
+                send_slack(slack_msg, slackwh["club_wh_url"])
         else:
-            #send_status(status,lat,lng) # Send status to Social Networks
             print(status) # Send to Screen (for debugging)
 
 ###########################################
@@ -575,18 +668,58 @@ if send_weather_data:
         if isinstance(luminosity,float):
             status = status + "Luminosity: " + str(luminosity) + "W/m^2" + linefeed
 
-        # status = status + "Time: " +  datetime.datetime.fromtimestamp(int(lastwxtime)).strftime('%H:%M:%S') + " | " + \
-        status = status + "https://aprs.fi/" + station
+        # Now finish off the status for Slack and everything else. The URL create method is different for Slack
+        slack_status = status + " | <https://aprs.fi/" + station + "|https://aprs.fi/" + station + ">"
+        status = status +  " | https://aprs.fi/" + station
+
+        msg_type = 2 # APRS Weather Data
         
         if not debug:
-            send_status(status,2,lat,lng) # Send status to Social Networks
+                # msg_types
+                # 1: Postion Data
+                # 2: Weather Data
+                # 3: APRS message
+
+            # Send to a personal system
+            if twitter: # Send Status to Twitter
+                send_twitter(status)
+
+            if telegram: # Send Status to Telegram
+                send_telegram(status, msg_type, lat,lng, telegramkeys["my_bot_token"], telegramkeys["poswx_chat_id"])
+
+            if mastodon: # Send Status to Mastodon
+                send_mastodon(status)
+
+            if discord: # Send Status to Discord
+                send_discord(status, discordwh["poswx_wh_url"], msg_type)
+
+            if mattermost: # Send Status to Mattermost
+                send_mattermost(status, mattermostwh["poswx_wh_url"], mattermostwh["poswx_apikey"])
+
+            if slack: # Send Status to Slack
+                slack_msg = {'text': slack_status}
+                send_slack(slack_msg, slackwh["poswx_wh_url"])
+
+            # See about sending to a club system 
+            if club_telegram: # Send Status to Telegram
+                send_telegram(status, msg_type, lat,lng, telegramkeys["club_bot_token"], telegramkeys["club_chat_id"])
+
+            if club_discord: # Send Status to Discord
+                send_discord(status, discordwh["club_wh_url"], msg_type)
+
+            if club_mattermost: # Send Status to Mattermost
+                send_mattermost(status, mattermostwh["club_wh_url"], mattermostwh["club_apikey"])
+
+            if club_slack: # Send Status to Slack
+                slack_msg = {'text': slack_status}
+                send_slack(slack_msg, slackwh["club_wh_url"])
         else: 
             print(status) # Send to Screen (for debugging)
 
 ###########################################
 # Now Check for messages to my callsign(s) 
 
-if aprsmsg_notify_telegram or aprsmsg_notify_discord or aprsmsg_notify_pushover:
+if aprsmsg_notify_telegram or aprsmsg_notify_discord or aprsmsg_notify_mattermost or aprsmsg_notify_slack or aprsmsg_notify_pushover:
 
     data = get_api_data_payload(aprsfi_api_base_url,msg_payload)
 
@@ -609,14 +742,22 @@ if aprsmsg_notify_telegram or aprsmsg_notify_discord or aprsmsg_notify_pushover:
         msg_datestamp = datetime.datetime.fromtimestamp(int(dtstamp)).strftime('%m/%d/%Y')
 
         # create msg status and send to Telegram
-        msg_status = "On " + msg_datestamp + " at " + msg_timestamp + " " + srccall + " sent " + dstcall + " the following APRS message: " + linefeed + msg
+        msg_status = "On " + msg_datestamp + " at " + msg_timestamp + ", " + srccall + " sent " + dstcall + " the following APRS message: " + msg
+
+        msg_type = 3 # APRS Message Notification
+
         if not debug:
             if aprsmsg_notify_telegram:
-                send_telegram(msg_status,3)
+                send_telegram(msg_status, msg_type, lat,lng, telegramkeys["my_bot_token"], telegramkeys["msg_chat_id"])
             if aprsmsg_notify_discord:
-                send_discord(msg_status,discordwh["aprsmsg_wh_url"])
+                send_discord(msg_status,discordwh["aprsmsg_wh_url"], msg_type)
             if aprsmsg_notify_pushover:
                 send_pushover(msg_status)
+            if aprsmsg_notify_slack:
+                slack_msg = {'text': msg_status}
+                send_slack(slack_msg,slackwh["aprsmsg_wh_url"])    
+            if aprsmsg_notify_mattermost:
+                send_mattermost(msg, mattermostwh["msg_wh_url"], mattermostwh["msg_apikey"])         
         else:
             print(msg_status) # Send to Screen (for debugging)
 

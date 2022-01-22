@@ -5,18 +5,19 @@ This software is for use by Amateur Radio Operators only.
 
 This bot was designed to be used by one person with multiple APRS Trackers to track packets for that one person.
 
-Please see [the Wiki](https://github.com/n8acl/aprsnotify/wiki) for more information and [installation](https://github.com/n8acl/aprsnotify/wiki/Installation) and [configuration](https://github.com/n8acl/aprsnotify/wiki/Configuration-Utility-Walkthrough) steps.
+Please see [the Wiki](https://github.com/n8acl/aprsnotify/wiki) for more information and [installation](https://github.com/n8acl/aprsnotify/wiki/Installation) and [configuration](https://github.com/n8acl/aprsnotify/wiki/Configuration-Utility-Walkthrough) steps as well as [running the script](https://github.com/n8acl/aprsnotify/wiki/Running-The-Script).
 
 ##### Working Examples:
-- Twitter: @n8acl_aprs
-- Mastodon: You will need to follow n8acl_aprs@botsin.space.
+- Twitter: [@n8acl_aprs](https://twitter.com/n8acl_aprs)
+- Mastodon: [You will need to follow n8acl_aprs@botsin.space.](https://botsin.space/@n8acl_aprs)
 
-##### Currently Supported Networks
+##### Currently Supported Networks/Functions
 
 | Function | Supported Services|
 |----------|------------------|
-|Position Packet Data<br>Weather Packet Data| Twitter, Telegram, Mastodon, Discord, Mattermost|
-|Message Notification| Telegram, Discord, Pushover|
+|Position Packet Data<br>Weather Packet Data| Twitter, Telegram, Mastodon, Discord, Mattermost, Slack|
+|Message Notification| Telegram, Discord, Pushover, Mattermost, Slack|
+|Send Packet Data<br>to Club Server| Telegram, Discord, Mattermost, Slack|
 
 ---
 
@@ -28,7 +29,8 @@ Please see [the Wiki](https://github.com/n8acl/aprsnotify/wiki) for more informa
 - Get Weather Conditions from OpenWeatherMaps API for the location of the position packet
 - Find Maidenhead Grid Square of packet location.
 - Send Status to Social Media Networks (See above for supported Networks)
-- Get notification of an APRS message sent to your station (see above for supported Networks). If someone sends a message via APRS to one of the callsigns being tracked, the script will notify you nd share the message with you.
+- Get notification of an APRS message sent to your station (see above for supported Networks). If someone sends a message via APRS to one of the callsigns being tracked, the script will notify you and share the message with you.
+- Send packet data to a club Server channel. This allows club members to share packet data information with each other.
 
 ---
 
@@ -36,18 +38,19 @@ Please see [the Wiki](https://github.com/n8acl/aprsnotify/wiki) for more informa
 * Sending an APRS packet to Twitter/Mastodon for your followers to see.
 * Sending Weather data from APRS to Social Media.
 * Sending APRS data to yourself to confirm that it is making it to the internet.
-* Sending your position information to a Telegram/Discord Channel that you have your non-ham radio family and friends on so they can track you when you are traveling by car for a long distance.
+* Sending your position information to a Telegram/Discord/Mattermost/Slack Channel that you have your non-ham radio family and friends on so they can track you when you are traveling by car for a long distance.
+* Participating in sending packet data to a club server/channel in addition to your own channels/servers
 * Other uses that your imagination comes up with.
 
 ---
 
-## UPGRADE TO VERSION 6.0
+## UPGRADE TO RELEASE 01212022
 
-To upgrade to version 6.0 of the script, please run the update.py script. It will update your database to the most current version. 
+To upgrade to the current version of the script, please run the update.py script. It will update your database to the most current version.
 
-If you are installing the whole script for the first time (i.e. have never used APRSNotify before), do not run this script, but please run an_util.py. Only run this upgrade if you have used APRSNotify before and have previously upgraded to version 4.
+If you are installing the whole script for the first time (i.e. have never used APRSNotify before), please run an_util.py instead. Only run the upgrade script if you have used APRSNotify before and have previously upgraded to version 4.
 
-#### Upgrading a version older than Version 4 to current Version 6.0
+#### Upgrading a version older than Version 4 to current version
 
 Please note that any version prior to 4 has had to be depreciated and is no longer supported. With all the changes, it is difficult to support those older versions with the new version.
 
@@ -90,13 +93,24 @@ If you reach out to me and have an error, please include what error you are gett
 
 ## Change Log
 
+* 01/21/2022 - Release 01212022
+  - Added Support for Slack
+  - Added Messaging support for Mattermost, Slack
+  - Added Support to send to Club Servers (See above networks table for supported networks)
+  - Added ability to find current release number from command line
+  - Changed versioning system to date of release (similar to Home Assistant and other applications)
+  - Fixed Various bugs found
+  - Updates to Wiki
+    - Added Club Configuration and how to for server admins to allow club members to send to the server.
+    - Moved Change Log entres prior to 2022 [to a wiki page](https://github.com/n8acl/aprsnotify/wiki/Change-Log). This is to help clean up the README File a little.
+
 * 01/16/2022
-  * Fixed issue with weather part of the status message
+  - Fixed issue with weather part of the status message
 
 * 01/15/2022 - Minor update
-  * Fixed error in message sending to Pushover
-  * Fixed error in packetstatus creation with fixed station
-  * Fixed error in sending messages notificaton via Discord
+  - Fixed error in message sending to Pushover
+  - Fixed error in packet status creation with fixed station
+  - Fixed error in sending messages notification via Discord
 
 * 01/12/2022 - Version 6.0 Release
   - Added support for Discord and Pushover for Message Notitification
@@ -105,74 +119,3 @@ If you reach out to me and have an error, please include what error you are gett
   - Added number of callsigns in the callsign lists on Config Utility
   - Added the prevention of adding more callsigns then able to be handled by aprs.fi api
   - Pull version number from database for Config Utility
-
-* 05/30/2021
-  - Minor updates to README and the wiki. 
-
-* 05/19/2021 - Version 5.0 Release
-  - Update of APRSNotify Database to consolidate callsign lists to one table
-  - Redesign of an_util.py into a Flask app to allow for web browser based GUI to configure the script.
-  - Addition of Discord to supported networks.
-  - Automatically does not send a map image with WX Station Data or message notification to Telegram
-  - Updated Wiki with new information.
-
-* 01/15/2021 - Version 4.0 Release
-  - Removal of APRSBot to a different project
-  - Moved from text files for data storage to SQLlite3 Database
-  - Various small bug fixes and rework of the code.
-  - Added: ability to send status to Mastodon
-  - Added: an_util.py configuration utility for interacting with the database
-  - Added: New wiki user guide.
-  - Added: Parsing of Weather Data packet from APRS.
-
-* 12/11/2020 - Release 3.1 - Fixes around APRS.FI API limitations
-  - APRSnotify
-    - Updated aprsnotify.py to split position tracking and messge monitoring lists out to 2 seperate lists due to APRS.fi API restrictions
-  - APRSbot
-    - Updated aprsbot to fix APRS-IS Timeouts for sending locations and messages
-  - README.md
-    - Added limitations to the API to the APRS.fi API key section.
-    - Other updates and clearifications to README.md
-  - Configuration.md
-    - Split callsign lists out to position tracking list and message list. This is due to limitations on the APRS.fi API
-
-* 12/09/2020 - Minor update
-  - Fixed Bug: fixed error in setup.py. Named the config file wrong in variable. (Found by [Alex Bowman, KN4KNG](https://github.com/KN4KNG))
-
-* 11/15/2020 - Version 3.0 Release
-  - Added/New Features:
-    - Added a requirements.txt file to make installing libraries easier for end users
-    - Added checks to make sure all python libraries needed are installed already and notify the user if not and how to install
-    - Created and added new interactive bot functionality, APRSBot
-  - Updates/Changes:
-    - Changed from urllib to requests library to parse json. This makes it easier to use the same url for different purposes
-    - Removed the aprs and msg url variables and combined into aprsfi_url variable for use with new library
-    - Fixed bug: added srccall variable instantiation. This fixes a bug where if the srccall is not pulled properly the script bombs
-    - Removed using Google Geocoder for Reverse geocoding. Only using OpenStreetMaps now
-    - Updated README.md and Configuration.md files
-
-* 08/20/2020
-  - Updates to the ReadMe file
-
-* 07/06/2020 - Version 2.0 Release
-  - Added/New Features:
-    - Ability to choose between Metric and Imperial units
-    - Ability to turn off WX Information and not include it in the status message.
-    - Now sends notification if someone sends the user a message on APRS (requires Telegram bot for this to work).
-    - Sends map image of the packet location to Telegram (requires Telegram bot for this to work).
-  - Updates:
-    - Fixed: If there is not a speed entry in the JSON payload from APRS.FI, the script assumes it's a fixed station and does not include speed in the status message. In Ver. 1.0 this was a bug that would cause the script to fail if there was not a speed entry in the JSON payload.
-    - Updated the config file to include switches for new features.
-    - Updated the configuration walkthrough in this repo.
-    - Updated Setup.py to include switches for new features. Will also update an existing config.py file to the new version. 
-      - NOTE: If you are running version 1, when updating to Version 2 of the script, make sure to run setup.py to update your existing config.py file to the correct config version.
-    - Reworked and tighten up code in the main script
-
-* 02/29/2020 - Initial Release 1.0
-  - Combined functionality of APRSTweet and APRSTelegram
-  - Added: Ability to choose to send to Twitter, Telegram or All
-  - Added: Ability to choose between OpenStreetMaps and Google Geocoding API for reverse geocoding of packet location
-  - Added: Added the hashtag #APRS to the end of the status message for Twitter
-  - Added: Finds the Maidenhead Grid Square based on packet location and includes it in the status message
-  - Added: Created setup utility to help in config file creation.
-  - Update: Fixed URL for aprs.fi in the status message from http:// to https://

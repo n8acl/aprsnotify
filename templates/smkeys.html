@@ -1,7 +1,7 @@
 <html>
     <head>
         <title>
-            APRSNotify Configuration Utility
+            {{ page_title }}
         </title>
     </head>
     <body>
@@ -219,10 +219,10 @@
                             {% endfor %}    
                             {% for row in mattermost_keys %}
                                 <tr>
-                                <td>Webhook URL:</td><td><input type="text" name="mattermost_webhook_url" size="50" value="{{ row[0] }}"> </td>
+                                <td>Webhook URL:</td><td><input type="text" name="mattermost_poswx_wh_url" size="50" value="{{ row[0] }}"> </td>
                                 </tr>
                                 <tr>
-                                <td>Webhook API Key:</td><td><input type="text" name="mm_wh_api_key" size="50" value="{{ row[1] }}"> </td>
+                                <td>Webhook API Key:</td><td><input type="text" name="mattermost_poswx_api_key" size="50" value="{{ row[1] }}"> </td>
                                 </tr>
                                 <tr>
                                 <td colspan=2>
@@ -235,7 +235,37 @@
                         </form>
                     </td>
                     </tr>
-
+                    <tr>
+                        <td valign= "top"> <!-- SLack Settings -->
+                            <form action="{{url_for('update_api_keys') }}" method="POST">
+                                <input type = "hidden" name="app" value="slack">
+                            <table border=0>
+                                {% for config_row in config_settings %}
+                                    <tr>
+                                        <td colspan = 2><b>Slack Settings</b><br>Send to Slack? 
+                                    {% if config_row[6] == True: %}
+                                        <input type="radio" name="send_to_slack" value = "1" checked>Yes <input type="radio" name="send_to_slack" value = "0" >No
+                                    {% else %}
+                                        <input type="radio" name="send_to_slack" value = "1">Yes <input type="radio" name="send_to_slack" value = "0" checked>No
+                                    {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}    
+                                {% for row in slack_keys %}
+                                    <tr>
+                                    <td>Webhook URL:</td><td><input type="text" name="slack_poswx_wh_url" size="50" value="{{ row[0] }}"> </td>
+                                    </tr>
+                                    <tr>
+                                    <td colspan=2>
+                                        <input type="submit" name="submit" value="Submit">
+                                        <input type="submit" name="submit" value="Clear">
+                                    </td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                            </form>
+                        </td>
+                        </tr>
 
 
         </table>

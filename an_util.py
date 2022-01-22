@@ -1,5 +1,5 @@
 # Import Libraries
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, Markup
 import sqlite3 as sql
 import os
 from os import system, name
@@ -8,7 +8,9 @@ from os import system, name
 app = Flask(__name__)
 
 database = os.path.dirname(os.path.abspath(__file__)) +  "/aprsnotify.db"
-current_version = 5.2
+linefeed = "\n"
+html_linefeed = "<br>"
+current_version = '01222021'
 
 # Define functions
 
@@ -38,6 +40,7 @@ def new(conn, version):
       mastodon boolean,
       discord boolean,
       mattermost boolean,
+      slack boolean,
       units_to_use int,
       include_map_image_telegram boolean,
       include_wx boolean,
@@ -46,7 +49,13 @@ def new(conn, version):
       aprsmsg_notify_telegram boolean,
       aprsmsg_notify_discord boolean,
       aprsmsg_notify_pushover boolean,
-      version float
+      aprsmsg_notify_slack boolean,
+      aprsmsg_notify_mattermost boolean,
+      club_telegram boolean,
+      club_discord boolean,
+      club_mattermost boolean,
+      club_slack boolean,      
+      version text
 ); """
 
    create_aprsstamps_table = """ create table if not exists aprsstamps (
@@ -66,7 +75,7 @@ def new(conn, version):
    twitter_access_token text null,
    twitter_access_secret text null,
    telegram_bot_token text null,
-   telegram_my_chat_id text null,
+   telegram_poswx_chat_id text null,
    aprsfikey text null,
    openweathermapkey text null,
    mastodon_client_id text null,
@@ -74,10 +83,22 @@ def new(conn, version):
    mastodon_api_base_url text null,
    mastodon_user_access_token text null,
    discord_poswx_wh_url text null,
-   mattermost_webhook_url text null,
+   mattermost_poswx_wh_url text null,
    discord_aprsmsg_wh_url text null,
    pushover_token text null,
-   pushover_userkey text null
+   pushover_userkey text null,
+   slack_aprsmsg_wh_url text null,
+   slack_poswx_wh_url text null,
+   mattermost_poswx_api_key text null,
+   mattermost_aprsmsg_wh_url text null,
+   mattermost_aprsmsg_api_key text null,
+   telegram_aprsmsg_chat_id text null,
+   telegram_club_chat_id text null,
+   telegram_club_bot_token text null,
+   discord_club_wh_url text null,
+   mattermost_club_wh_url text null,
+   mattermost_club_api_key text null,
+   slack_club_wh_url text null
 ); """
 
    exec_sql(conn, create_config_table)
@@ -98,15 +119,31 @@ def new(conn, version):
       aprsmsg_notify_telegram,
       aprsmsg_notify_discord,
       aprsmsg_notify_pushover,
+      aprsmsg_notify_slack,
+      aprsmsg_notify_mattermost,
+      club_telegram,
+      club_discord,
+      club_mattermost,
+      club_slack, 
       version)
-    values (False,False,False,False,1,False,False,False,False,False,False,False,""" + str(version) + """);"""
+    values (False,False,False,False,1,False,False,False,False,False,False,False,False,False,False,False,False,False,'""" + version + """');"""
 
    exec_sql(conn,sql)
 
    sql = """insert into apikeys (twitter_consumer_key, twitter_consumer_secret, twitter_access_token, twitter_access_secret,
    telegram_bot_token, telegram_my_chat_id, aprsfikey, openweathermapkey, discord_poswx_wh_url, mattermost_webhook_url, discord_aprsmsg_wh_url,
-   pushover_token, pushover_userkey)
-   values(null,null,null,null,null,null,null,null,null,null,null,null,null);"""
+   pushover_token, pushover_userkey, slack_aprsmsg_wh_url, slack_poswx_wh_url, mattermost_poswx_api_key,
+   mattermost_aprsmsg_wh_url,
+   mattermost_aprsmsg_api_key,
+   telegram_aprsmsg_chat_id,
+      telegram_club_chat_id,
+   telegram_club_bot_token,
+   discord_club_wh_url,
+   mattermost_club_wh_url,
+   mattermost_club_api_key,
+   slack_club_wh_url
+   )
+   values(null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);"""
 
    exec_sql(conn,sql)
 
@@ -131,7 +168,8 @@ for row in ver:
 conn.close()
 
 #Set Standard Page Title
-page_title = "APRSNotify " + str(version) + " Configuration Utility"
+page_title = "APRSNotify Configuration Utility <br> Release " + str(version)
+page_title = Markup(page_title)
 
 # Define URL routes for Flask
 
@@ -143,22 +181,38 @@ def index():
 def smkeys():
    conn = create_connection(database)
    twitter_keys = select_sql(conn, "select ifnull(twitter_consumer_key,'None') as twitter_consumer_key, ifnull(twitter_consumer_secret,'None') as twitter_consumer_secret, ifnull(twitter_access_token,'None') as twitter_access_token, ifnull(twitter_access_secret,'None') as twitter_access_secret from apikeys")
-   telegram_keys = select_sql(conn, "select ifnull(telegram_bot_token,'None') as telegram_bot_token, ifnull(telegram_my_chat_id,'None') as telegram_my_chat_id from apikeys")
+   telegram_keys = select_sql(conn, "select ifnull(telegram_bot_token,'None') as telegram_bot_token, ifnull(telegram_poswx_chat_id,'None') as telegram_poswx_chat_id from apikeys")
    mastodon_keys = select_sql(conn, "select ifnull(mastodon_client_id,'None') as mastodon_client_id, ifnull(mastodon_client_secret,'None') as mastodon_client_secret, ifnull(mastodon_api_base_url,'None') as mastodon_api_base_url, ifnull(mastodon_user_access_token,'None') as mastodon_user_access_token from apikeys")
    discord_keys = select_sql(conn, "select ifnull(discord_poswx_wh_url, 'None') as discord_poswx_wh_url from apikeys")
-   mattermost_keys = select_sql(conn, "select ifnull(mattermost_webhook_url, 'None') as mattermost_webhook_url, ifnull(mm_wh_api_key, 'None') as mm_wh_api_key from apikeys")
-   config_settings = select_sql(conn, "select twitter, telegram, mastodon, include_map_image_telegram, discord, mattermost from config")
-   return render_template('smkeys.html',twitter_keys = twitter_keys, config_settings = config_settings, telegram_keys = telegram_keys, mastodon_keys = mastodon_keys, discord_keys = discord_keys, mattermost_keys = mattermost_keys, page_title = page_title)
+   mattermost_keys = select_sql(conn, "select ifnull(mattermost_poswx_wh_url, 'None') as mattermost_poswx_wh_url, ifnull(mattermost_poswx_api_key, 'None') as mattermost_poswx_api_key from apikeys")
+   slack_keys = select_sql(conn, "select ifnull(slack_poswx_wh_url, 'None') as slack_poswx_wh_url from apikeys")
+   config_settings = select_sql(conn, "select twitter, telegram, mastodon, include_map_image_telegram, discord, mattermost, slack from config")
+   return render_template('smkeys.html',twitter_keys = twitter_keys, config_settings = config_settings, telegram_keys = telegram_keys, mastodon_keys = mastodon_keys, discord_keys = discord_keys, mattermost_keys = mattermost_keys, slack_keys = slack_keys, page_title = page_title)
    conn.close()
 
 @app.route('/msgsettings')
 def msgsettings():
    conn = create_connection(database)
-   telegram_keys = select_sql(conn, "select ifnull(telegram_bot_token,'None') as telegram_bot_token, ifnull(telegram_my_chat_id,'None') as telegram_my_chat_id from apikeys")
-   discord_keys = select_sql(conn, "select ifnull(discord_aprsmsg_wh_url, 'None') as discord_aprsmsg_wh_url from apikeys")
-   config_settings = select_sql(conn, "select aprsmsg_notify_telegram, aprsmsg_notify_discord, aprsmsg_notify_pushover from config")
+   telegram_keys = select_sql(conn, "select ifnull(telegram_bot_token,'None') as telegram_bot_token, ifnull(ifnull(telegram_aprsmsg_chat_id,telegram_poswx_chat_id),'None') as telegram_aprsmsg_chat_id from apikeys")
+   discord_keys = select_sql(conn, "select ifnull(ifnull(discord_aprsmsg_wh_url, discord_poswx_wh_url),'None') as discord_aprsmsg_wh_url from apikeys")
    pushover_keys = select_sql(conn, "select ifnull(pushover_token, 'None') as pushover_token, ifnull(pushover_userkey, 'None') as pushover_userkey from apikeys")
-   return render_template('msgsettings.html', config_settings = config_settings, telegram_keys = telegram_keys, discord_keys = discord_keys, pushover_keys = pushover_keys, page_title = page_title)
+   mattermost_keys = select_sql(conn, "select ifnull(ifnull(mattermost_aprsmsg_wh_url, mattermost_poswx_wh_url),'None') as mattermost_aprsmsg_wh_url, ifnull(ifnull(mattermost_aprsmsg_api_key, mattermost_poswx_api_key),'None') as mattermost_aprsmsg_api_key from apikeys")
+   slack_keys = select_sql(conn, "select ifnull(ifnull(slack_aprsmsg_wh_url, slack_poswx_wh_url),'None') as slack_aprsmsg_wh_url from apikeys")
+   config_settings = select_sql(conn, "select aprsmsg_notify_telegram, aprsmsg_notify_discord, aprsmsg_notify_pushover, aprsmsg_notify_mattermost, aprsmsg_notify_slack from config")
+   
+   return render_template('msgsettings.html', config_settings = config_settings, telegram_keys = telegram_keys, discord_keys = discord_keys, pushover_keys = pushover_keys, mattermost_keys = mattermost_keys, slack_keys = slack_keys, page_title = page_title)
+   conn.close()
+
+@app.route('/clubsettings')
+def clubsettings():
+   conn = create_connection(database)
+   telegram_keys = select_sql(conn, "select ifnull(ifnull(telegram_bot_token,telegram_club_bot_token),'None') as telegram_club_bot_token, ifnull(telegram_club_chat_id,'None') as telegram_club_chat_id from apikeys")
+   discord_keys = select_sql(conn, "select ifnull(discord_club_wh_url, 'None') as discord_club_wh_url from apikeys")
+   mattermost_keys = select_sql(conn, "select ifnull(mattermost_club_wh_url,'None') as mattermost_club_wh_url, ifnull(mattermost_club_api_key,'None') as mattermost_club_api_key from apikeys")
+   slack_keys = select_sql(conn, "select ifnull(slack_club_wh_url,'None') as slack_club_wh_url from apikeys")
+   config_settings = select_sql(conn, "select club_telegram, club_discord, club_mattermost, club_slack from config")
+
+   return render_template('clubsettings.html', config_settings = config_settings, telegram_keys = telegram_keys, discord_keys = discord_keys, mattermost_keys = mattermost_keys, slack_keys = slack_keys, page_title = page_title)
    conn.close()
 
 @app.route('/otherapikeys')
@@ -187,8 +241,6 @@ def callsignlists():
 
    return render_template('callsignlists.html', poscallsignlist = poscallsignlist, wxcallsignlist = wxcallsignlist, msgcallsignlist = msgcallsignlist, poscnt = poscnt, wxcnt = wxcnt, msgcnt = msgcnt, page_title = page_title)
    conn.close()
-   #return render_template('callsignlists.html')
-
 
 @app.route('/update_api_keys', methods = ['POST', 'GET'])
 def update_api_keys():
@@ -213,7 +265,7 @@ def update_api_keys():
          exec_sql(conn,sql)
 
          sql = "update config set twitter = " 
-         if request.form["send_to_twitter"] == 1:
+         if request.form["send_to_twitter"] == '1':
             sql = sql + "True;"
          else:
             sql = sql + "False;"
@@ -236,25 +288,25 @@ def update_api_keys():
 
       try:
          telegram_bot_token = request.form["telegram_bot_token"]
-         telegram_my_chat_id = request.form["telegram_my_chat_id"]
+         telegram_poswx_chat_id = request.form["telegram_poswx_chat_id"]
 
 
          sql = "update apikeys set "
          sql = sql + "telegram_bot_token = '" + request.form["telegram_bot_token"] + "', "
-         sql = sql + "telegram_my_chat_id = '" + request.form["telegram_my_chat_id"] + "';"
+         sql = sql + "telegram_poswx_chat_id = '" + request.form["telegram_poswx_chat_id"] + "';"
 
          exec_sql(conn,sql)
 
          sql = "update config set telegram = "
 
-         if request.form["send_to_telegram"] == 1:
+         if request.form["send_to_telegram"] == '1':
             sql = sql + "True, "
          else:
             sql = sql + "False, "
 
          sql = sql + "include_map_image_telegram = "
          
-         if request.form["include_map_image_telegram"] == 1:
+         if request.form["include_map_image_telegram"] == '1':
             sql = sql + "True;"
          else:
             sql = sql + "False;"
@@ -296,7 +348,7 @@ def update_api_keys():
 
          sql = "update config set mastodon = " 
          
-         if request.form["send_to_mastodon"] == 1:
+         if request.form["send_to_mastodon"] == '1':
             sql = sql + "True;"
          else:
             sql = sql + "False;"
@@ -325,7 +377,7 @@ def update_api_keys():
          exec_sql(conn,sql)
 
          sql = "update config set discord = " 
-         if request.form["send_to_discord"] == 1:
+         if request.form["send_to_discord"] == '1':
             sql = sql + "True;"
          else:
             sql = sql + "False;"  
@@ -346,18 +398,18 @@ def update_api_keys():
 
       try:
 
-         mattermost_webhook_url = request.form["mattermost_webhook_url"]
-         mm_wh_api_key = request.form["mm_wh_api_key"]
+         mattermost_poswx_wh_url = request.form["mattermost_poswx_wh_url"]
+         mattermost_poswx_api_key = request.form["mattermost_poswx_api_key"]
 
          sql = "update apikeys set "
-         sql = sql + "mattermost_webhook_url = '" + request.form["mattermost_webhook_url"] + "', "
-         sql = sql + "mm_wh_api_key = '" + request.form["mm_wh_api_key"] + "';"
+         sql = sql + "mattermost_poswx_wh_url = '" + request.form["mattermost_poswx_wh_url"] + "', "
+         sql = sql + "mattermost_poswx_api_key = '" + request.form["mattermost_poswx_api_key"] + "';"
 
          exec_sql(conn,sql)
 
          sql = "update config set mattermost = " 
          
-         if request.form["send_to_mattermost"] == 1:
+         if request.form["send_to_mattermost"] == '1':
             sql = sql + "True;"
          else:
             sql = sql + "False;"  
@@ -372,6 +424,35 @@ def update_api_keys():
          return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title)
          conn.close()
 
+   if request.method == 'POST' and request.form["app"] == "slack":
+
+      header = "-------------------  " + request.form["app"].capitalize() + " Webhook -------------------"
+
+      try:
+
+         slack_poswx_wh_url = request.form["slack_poswx_wh_url"]
+
+         sql = "update apikeys set "
+         sql = sql + "slack_poswx_wh_url = '" + request.form["slack_poswx_wh_url"] + "';"
+
+         exec_sql(conn,sql)
+
+         sql = "update config set slack = " 
+         
+         if request.form["send_to_slack"] == '1':
+            sql = sql + "True;"
+         else:
+            sql = sql + "False;"  
+         
+         exec_sql(conn,sql)  
+
+         msg = request.form["app"].capitalize() + " Keys updated."
+      except:
+         conn.rollback()
+         msg = "Error in Operation."
+      finally:
+         return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title)
+         conn.close()
  
    if request.method == 'POST' and request.form["app"] == "aprsfi":
 
@@ -425,9 +506,26 @@ def update_configs():
 
       sql = "update config set "
       sql = sql + "units_to_use = " + request.form["units_to_use"] + ", "
-      sql = sql + "include_wx = " + request.form["include_wx"] + ", "
-      sql = sql + "send_position_data = " + request.form["send_position_data"] + ", "
-      sql = sql + "send_weather_data = " + request.form["send_weather_data"] + ";"
+      sql = sql + "include_wx = " 
+      
+      if request.form["include_wx"] == '1':
+         sql = sql + "True, "
+      else:
+         sql = sql + "False, " 
+            
+      sql = sql + "send_position_data = " 
+      
+      if request.form["send_position_data"] == '1':
+         sql = sql + "True, "
+      else:
+         sql = sql + "False, " 
+      
+      sql = sql + "send_weather_data = " 
+      
+      if request.form["send_weather_data"] == '1':
+         sql = sql + "True;"
+      else:
+         sql = sql + "False;" 
 
       exec_sql(conn,sql)
 
@@ -445,7 +543,7 @@ def update_msg_settings():
 
    if request.method == 'POST' and request.form["app"] == "pushover":
 
-      header = "-------------------  " + request.form["app"].capitalize() + " Message Settings -------------------"
+      header = "-------------------  " + request.form["app"].capitalize() + " Message Notification Settings -------------------"
 
       try:
          pushover_token = request.form["pushover_token"]
@@ -459,14 +557,15 @@ def update_msg_settings():
          exec_sql(conn,sql)
 
          sql = "update config set aprsmsg_notify_pushover = "
-         if request.form["aprsmsg_notify_pushover"] == 1:
+         if request.form["aprsmsg_notify_pushover"] == '1':
             sql = sql + "True;"
          else:
             sql = sql + "False;" 
-         
+
+
          exec_sql(conn,sql)        
 
-         msg = request.form["app"].capitalize() + " Message Settings updated."
+         msg = request.form["app"].capitalize() + " Message Notification Settings updated."
 
       except:
          conn.rollback()
@@ -478,11 +577,11 @@ def update_msg_settings():
 
    if request.method == 'POST' and request.form["app"] == "discord":
 
-      header = "-------------------  " + request.form["app"].capitalize() + " Message Settings -------------------"
+      header = "-------------------  " + request.form["app"].capitalize() + " Message Notification Settings -------------------"
 
       try:
 
-         discord_webhook_url = request.form["discord_webhook_url"]
+         discord_aprsmsg_wh_url = request.form["discord_aprsmsg_wh_url"]
 
          sql = "update apikeys set "
          sql = sql + "discord_aprsmsg_wh_url = '" + request.form["discord_aprsmsg_wh_url"] + "';"
@@ -491,14 +590,14 @@ def update_msg_settings():
 
          sql = "update config set aprsmsg_notify_discord = "
 
-         if request.form["aprsmsg_notify_discord"] == 1:
+         if request.form["aprsmsg_notify_discord"] == '1':
             sql = sql + "True;"
          else:
-            sql = sql + "False;"       
+            sql = sql + "False;"      
          
-         exec_sql(conn,sql)  
+         exec_sql(conn,sql) 
 
-         msg = request.form["app"].capitalize() + " settings updated."
+         msg = request.form["app"].capitalize() + " Message Notification Settings updated."
       except:
          conn.rollback()
          msg = "Error in Operation."
@@ -508,26 +607,88 @@ def update_msg_settings():
 
    if request.method == 'POST' and request.form["app"] == "telegram":
 
-      header = "-------------------  " + request.form["app"].capitalize() + " Message Settings -------------------"
+      header = "-------------------  " + request.form["app"].capitalize() + " Message Notification Settings -------------------"
 
       try:
          telegram_bot_token = request.form["telegram_bot_token"]
-         telegram_my_chat_id = request.form["telegram_my_chat_id"]
+         telegram_aprsmsg_chat_id = request.form["telegram_aprsmsg_chat_id"]
 
 
          sql = "update apikeys set "
          sql = sql + "telegram_bot_token = '" + request.form["telegram_bot_token"] + "', "
-         sql = sql + "telegram_my_chat_id = '" + request.form["telegram_my_chat_id"] + "';"
+         sql = sql + "telegram_aprsmsg_chat_id = '" + request.form["telegram_aprsmsg_chat_id"] + "';"
 
          exec_sql(conn,sql)
 
-         sql = "update config set telegram = "
+         sql = "update config set aprsmsg_notify_telegram = "
 
-         if request.form["aprsmsg_notify_telegram"] == 1:
+         if request.form["aprsmsg_notify_telegram"] == '1':
             sql = sql + "True;"
          else:
-            sql = sql + "False;"
+            sql = sql + "False;" 
 
+         exec_sql(conn,sql)  
+
+         msg = request.form["app"].capitalize() + " Message Notification Settings updated."
+      except:
+         conn.rollback()
+         msg = "Error in Operation."
+      finally:
+         return render_template("results.html", msg = msg, header = header, page="msgkeys", page_title = page_title)
+         conn.close()
+
+   if request.method == 'POST' and request.form["app"] == "mattermost":
+
+      header = "-------------------  " + request.form["app"].capitalize() + " Message Notification Webhook -------------------"
+
+      try:
+
+         mattermost_aprsmsg_wh_url = request.form["mattermost_aprsmsg_wh_url"]
+         mattermost_aprsmsg_api_key = request.form["mattermost_aprsmsg_api_key"]
+
+         sql = "update apikeys set "
+         sql = sql + "mattermost_aprsmsg_wh_url = '" + request.form["mattermost_aprsmsg_wh_url"] + "', "
+         sql = sql + "mattermost_aprsmsg_api_key = '" + request.form["mattermost_aprsmsg_api_key"] + "';"
+
+         exec_sql(conn,sql)
+
+         sql = "update config set aprsmsg_notify_telegram = " 
+         
+         if request.form["aprsmsg_notify_mattermost"] == '1':
+            sql = sql + "True;"
+         else:
+            sql = sql + "False;"  
+         
+         exec_sql(conn,sql)  
+
+         msg = request.form["app"].capitalize() + " Message Notification Settings updated."
+      except:
+         conn.rollback()
+         msg = "Error in Operation."
+      finally:
+         return render_template("results.html", msg = msg, header = header, page="msgkeys", page_title = page_title)
+         conn.close()
+
+   if request.method == 'POST' and request.form["app"] == "slack":
+
+      header = "-------------------  " + request.form["app"].capitalize() + " Messaging Webhook -------------------"
+
+      try:
+
+         slack_aprsmsg_wh_url = request.form["slack_aprsmsg_wh_url"]
+
+         sql = "update apikeys set "
+         sql = sql + "slack_aprsmsg_wh_url = '" + request.form["slack_aprsmsg_wh_url"] + "';"
+
+         exec_sql(conn,sql)
+
+         sql = "update config set aprsmsg_notify_slack = " 
+         
+         if request.form["aprsmsg_notify_slack"] == '1':
+            sql = sql + "True;"
+         else:
+            sql = sql + "False;"  
+         
          exec_sql(conn,sql)  
 
          msg = request.form["app"].capitalize() + " Message Settings updated."
@@ -538,7 +699,133 @@ def update_msg_settings():
          return render_template("results.html", msg = msg, header = header, page="msgkeys", page_title = page_title)
          conn.close()
 
+@app.route('/update_club_settings', methods = ['POST', 'GET'])
+def update_club_settings():
+   conn = create_connection(database)
 
+   if request.method == 'POST' and request.form["app"] == "discord":
+
+      header = "-------------------  " + request.form["app"].capitalize() + " Club Settings -------------------"
+
+      try:
+
+         discord_club_wh_url = request.form["discord_club_wh_url"]
+
+         sql = "update apikeys set "
+         sql = sql + "discord_club_wh_url = '" + request.form["discord_club_wh_url"] + "';"
+
+         exec_sql(conn,sql)
+
+         sql = "update config set club_discord = "
+
+         if request.form["club_discord"] == '1':
+            sql = sql + "True;"
+         else:
+            sql = sql + "False;"      
+         
+         exec_sql(conn,sql)  
+
+         msg = request.form["app"].capitalize() + " Club Settings updated."
+      except:
+         conn.rollback()
+         msg = "Error in Operation."
+      finally:
+         return render_template("results.html", msg = msg, header = header, page="clubkeys", page_title = page_title)
+         conn.close()
+
+   if request.method == 'POST' and request.form["app"] == "telegram":
+
+      header = "-------------------  " + request.form["app"].capitalize() + " Club Settings -------------------"
+
+      try:
+         telegram_club_bot_token = request.form["telegram_club_bot_token"]
+         telegram_club_chat_id = request.form["telegram_club_chat_id"]
+
+
+         sql = "update apikeys set "
+         sql = sql + "telegram_club_bot_token = '" + request.form["telegram_club_bot_token"] + "', "
+         sql = sql + "telegram_club_chat_id = '" + request.form["telegram_club_chat_id"] + "';"
+
+         exec_sql(conn,sql)
+
+         sql = "update config set club_telegram = "
+
+         if request.form["club_telegram"] == '1':
+            sql = sql + "True;"
+         else:
+            sql = sql + "False;" 
+
+         exec_sql(conn,sql)  
+
+         msg = request.form["app"].capitalize() + " Club Notification Settings updated."
+      except:
+         conn.rollback()
+         msg = "Error in Operation."
+      finally:
+         return render_template("results.html", msg = msg, header = header, page="clubkeys", page_title = page_title)
+         conn.close()
+
+   if request.method == 'POST' and request.form["app"] == "mattermost":
+
+      header = "-------------------  " + request.form["app"].capitalize() + " Club Notification Webhook -------------------"
+
+      try:
+
+         mattermost_club_wh_url = request.form["mattermost_club_wh_url"]
+         mattermost_club_api_key = request.form["mattermost_club_api_key"]
+
+         sql = "update apikeys set "
+         sql = sql + "mattermost_club_wh_url = '" + request.form["mattermost_club_wh_url"] + "', "
+         sql = sql + "mattermost_club_api_key = '" + request.form["mattermost_club_api_key"] + "';"
+
+         exec_sql(conn,sql)
+
+         sql = "update config set club_mattermost = " 
+         
+         if request.form["club_mattermost"] == '1':
+            sql = sql + "True;"
+         else:
+            sql = sql + "False;"  
+         
+         exec_sql(conn,sql)  
+
+         msg = request.form["app"].capitalize() + " Club Notification Settings updated."
+      except:
+         conn.rollback()
+         msg = "Error in Operation."
+      finally:
+         return render_template("results.html", msg = msg, header = header, page="clubkeys", page_title = page_title)
+         conn.close()
+
+   if request.method == 'POST' and request.form["app"] == "slack":
+
+      header = "-------------------  " + request.form["app"].capitalize() + " Messaging Webhook -------------------"
+
+      try:
+
+         slack_club_wh_url = request.form["slack_club_wh_url"]
+
+         sql = "update apikeys set "
+         sql = sql + "slack_club_wh_url = '" + request.form["slack_club_wh_url"] + "';"
+
+         exec_sql(conn,sql)
+
+         sql = "update config set club_slack = " 
+         
+         if request.form["club_slack"] == '1':
+            sql = sql + "True;"
+         else:
+            sql = sql + "False;"  
+         
+         exec_sql(conn,sql)  
+
+         msg = request.form["app"].capitalize() + " Club Settings updated."
+      except:
+         conn.rollback()
+         msg = "Error in Operation."
+      finally:
+         return render_template("results.html", msg = msg, header = header, page="clubkeys", page_title = page_title)
+         conn.close()
 
 @app.route('/update_callsign_lists', methods = ['POST', 'GET'])
 def update_callsign_lists():

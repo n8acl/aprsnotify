@@ -1,7 +1,7 @@
 <html>
     <head>
         <title>
-            APRSNotify Configuration Utility
+            {{ page_title }}
         </title>
     </head>
     <body>
@@ -21,6 +21,8 @@
         <a href="../callsignlists">Return to Callsign Lists Configuration Page</a>
         {% elif page == "msgkeys" %}
         <a href="../msgsettings">Return to Message Notification Configuration Page</a>
+        {% elif page == "clubkeys" %}
+        <a href="../clubsettings">Return to Club Server Configuration Page</a>
         {% else %}
         <a href="../">Return to Main Menu</a>        
         {% endif %}

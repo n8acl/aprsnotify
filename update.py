@@ -5,7 +5,6 @@ from os import system, name
 from sqlite3 import Error
 
 # Define Variables
-update_version = 6.0
 database = os.path.dirname(os.path.abspath(__file__)) +  "/aprsnotify.db"
 
 # Define Functions
@@ -221,4 +220,124 @@ if version == 5.1:
    
 
     sql = "update config set version = 6.0;"
+    run_sql(conn, sql)
+
+ver = select_sql(conn, "select version from config;")
+for row in ver:
+   version = row[0]
+
+if version == 6.0:
+
+    # Install new Dependenacies
+
+    # Perform Table Updates
+
+    sql = """
+        create table config_new (
+        twitter boolean,
+        telegram boolean,
+        mastodon boolean,
+        discord boolean,
+        mattermost boolean,
+        slack boolean,
+        units_to_use int,
+        include_map_image_telegram boolean,
+        include_wx boolean,
+        send_position_data boolean,
+        send_weather_data boolean,
+        aprsmsg_notify_telegram boolean,
+        aprsmsg_notify_discord boolean,
+        aprsmsg_notify_pushover boolean,
+        aprsmsg_notify_slack boolean,
+        aprsmsg_notify_mattermost boolean,
+        club_telegram boolean,
+        club_discord boolean,
+        club_mattermost boolean,
+        club_slack boolean,
+        version text
+        ); """
+
+    run_sql(conn, sql) 
+
+    sql = """
+    insert into config_new (twitter, telegram, mastodon, discord, mattermost, slack, units_to_use, include_map_image_telegram, include_wx, send_position_data, send_weather_data, 
+    aprsmsg_notify_telegram, aprsmsg_notify_discord, aprsmsg_notify_pushover, aprsmsg_notify_slack, aprsmsg_notify_mattermost, club_telegram, club_discord, club_mattermost, 
+    club_slack, version)
+
+    select 
+    twitter,
+    telegram,
+    mastodon,
+    discord,
+    mattermost,
+    False as slack,
+    units_to_use,
+    include_map_image_telegram,
+    include_wx,
+    send_position_data,
+    send_weather_data,
+    aprsmsg_notify_telegram,
+    aprsmsg_notify_discord,
+    aprsmsg_notify_pushover,
+    False as aprsmsg_notify_slack,
+    False as aprsmsg_notify_mattermost,
+    False as club_telegram,
+    False as club_discord,
+    False as club_mattermost,
+    False as club_slack,
+    0 as version
+    from config;
+
+    """
+    run_sql(conn, sql)
+
+    sql = "drop table config;"
+    run_sql(conn, sql)
+
+    sql = "alter table config_new rename to config;"    
+    run_sql(conn, sql)
+
+    sql = "alter table apikeys add slack_aprsmsg_wh_url text null;"
+    run_sql(conn, sql)  
+
+    sql = "alter table apikeys add slack_poswx_wh_url text null;"
+    run_sql(conn, sql) 
+
+    sql = "alter table apikeys rename mattermost_webhook_url to mattermost_poswx_wh_url;"
+    run_sql(conn, sql)
+
+    sql = "alter table apikeys rename mm_wh_api_key to mattermost_poswx_api_key;"
+    run_sql(conn, sql)
+
+    sql = "alter table apikeys add mattermost_aprsmsg_wh_url text null;"
+    run_sql(conn, sql)  
+
+    sql = "alter table apikeys add mattermost_aprsmsg_api_key text null;"
+    run_sql(conn, sql) 
+
+    sql = "alter table apikeys rename telegram_my_chat_id to telegram_poswx_chat_id;"
+    run_sql(conn, sql)
+
+    sql = "alter table apikeys add telegram_aprsmsg_chat_id text null;"
+    run_sql(conn, sql) 
+
+    sql = "alter table apikeys add telegram_club_chat_id text null;"
+    run_sql(conn, sql) 
+
+    sql = "alter table apikeys add telegram_club_bot_token text null;"
+    run_sql(conn, sql) 
+
+    sql = "alter table apikeys add discord_club_wh_url text null;"
+    run_sql(conn, sql) 
+
+    sql = "alter table apikeys add mattermost_club_wh_url text null;"
+    run_sql(conn, sql)  
+
+    sql = "alter table apikeys add mattermost_club_api_key text null;"
+    run_sql(conn, sql) 
+
+    sql = "alter table apikeys add slack_club_wh_url text null;"
+    run_sql(conn, sql) 
+
+    sql = "update config set version = '01222022';"
     run_sql(conn, sql)
