@@ -443,7 +443,7 @@ def update_api_keys():
       try:
 
          sql = "update apikeys set "
-         sql = sql + "aprsfikey = '" + aprsfikey + "';"
+         sql = sql + "aprsfikey = '" + request.form['aprsfikey'] + "';"
 
          exec_sql(conn,sql)
 
@@ -462,7 +462,7 @@ def update_api_keys():
       try:
 
          sql = "update apikeys set "
-         sql = sql + "openweathermapkey = '" + openweathermapkey + "';"
+         sql = sql + "openweathermapkey = '" + request.form['openweathermapkey'] + "';"
 
          exec_sql(conn,sql)
 
