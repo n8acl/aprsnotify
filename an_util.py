@@ -252,10 +252,6 @@ def update_api_keys():
       header = "-------------------  " + request.form["app"].capitalize() + " API Keys -------------------"
 
       try:
-         twitter_consumer_key = request.form["twitter_consumer_key"]
-         twitter_consumer_secret = request.form["twitter_consumer_secret"]
-         twitter_access_token = request.form["twitter_access_token"]
-         twitter_access_secret = request.form["twitter_access_secret"]
 
          sql = "update apikeys set "
          sql = sql + "twitter_consumer_key = '" + request.form["twitter_consumer_key"] + "', "
@@ -288,9 +284,6 @@ def update_api_keys():
       header = "-------------------  " + request.form["app"].capitalize() + " API Keys -------------------"
 
       try:
-         telegram_bot_token = request.form["telegram_bot_token"]
-         telegram_poswx_chat_id = request.form["telegram_poswx_chat_id"]
-
 
          sql = "update apikeys set "
          sql = sql + "telegram_bot_token = '" + request.form["telegram_bot_token"] + "', "
@@ -327,11 +320,6 @@ def update_api_keys():
       header = "-------------------  " + request.form["app"].capitalize() + " API Keys -------------------"
 
       try:
-
-         mastodon_instance_url = request.form["mastodon_instance_url"]
-         mastodon_bot_app_name = request.form["mastodon_bot_app_name"]
-         mastodon_username = request.form["mastodon_username"]
-         mastodon_password = request.form["mastodon_password"]
 
          client_keys = Mastodon.create_app(request.form["mastodon_bot_app_name"], scopes=['read', 'write'], api_base_url=request.form["mastodon_instance_url"])
 
@@ -370,8 +358,6 @@ def update_api_keys():
 
       try:
 
-         discord_webhook_url = request.form["discord_webhook_url"]
-
          sql = "update apikeys set "
          sql = sql + "discord_poswx_wh_url = '" + request.form["discord_poswx_wh_url"] + "';"
 
@@ -386,9 +372,9 @@ def update_api_keys():
          exec_sql(conn,sql)  
 
          msg = request.form["app"].capitalize() + " settings updated."
-      except:
+      except Exception as err:
          conn.rollback()
-         msg = "Error in Operation."
+         msg = "Error in Operation. "
       finally:
          return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title)
          conn.close()
@@ -398,9 +384,6 @@ def update_api_keys():
       header = "-------------------  " + request.form["app"].capitalize() + " Webhook -------------------"
 
       try:
-
-         mattermost_poswx_wh_url = request.form["mattermost_poswx_wh_url"]
-         mattermost_poswx_api_key = request.form["mattermost_poswx_api_key"]
 
          sql = "update apikeys set "
          sql = sql + "mattermost_poswx_wh_url = '" + request.form["mattermost_poswx_wh_url"] + "', "
@@ -431,8 +414,6 @@ def update_api_keys():
 
       try:
 
-         slack_poswx_wh_url = request.form["slack_poswx_wh_url"]
-
          sql = "update apikeys set "
          sql = sql + "slack_poswx_wh_url = '" + request.form["slack_poswx_wh_url"] + "';"
 
@@ -461,8 +442,6 @@ def update_api_keys():
 
       try:
 
-         aprsfikey = request.form["aprsfikey"]
-
          sql = "update apikeys set "
          sql = sql + "aprsfikey = '" + aprsfikey + "';"
 
@@ -481,8 +460,6 @@ def update_api_keys():
       header = "-------------------  " + request.form["app"].capitalize() + " API Key -------------------"
 
       try:
-
-         openweathermapkey = request.form["openweathermapkey"]
 
          sql = "update apikeys set "
          sql = sql + "openweathermapkey = '" + openweathermapkey + "';"
