@@ -106,7 +106,8 @@ def new(conn, version):
    exec_sql(conn, create_callsignlist_table)
    exec_sql(conn, create_apikeys_table)
 
-   sql = """insert into config (twitter,
+   sql = """insert into config (
+      twitter,
       telegram,
       mastodon,
       discord,
@@ -126,12 +127,12 @@ def new(conn, version):
       club_mattermost,
       club_slack, 
       version)
-    values (False,False,False,False,1,False,False,False,False,False,False,False,False,False,False,False,False,False,'""" + version + """');"""
+    values (False,False,False,False,1,False,False,False,False,False,False,False,False,False,False,False,False,False,False,'""" + version + """');"""
 
    exec_sql(conn,sql)
 
    sql = """insert into apikeys (twitter_consumer_key, twitter_consumer_secret, twitter_access_token, twitter_access_secret,
-   telegram_bot_token, telegram_my_chat_id, aprsfikey, openweathermapkey, discord_poswx_wh_url, mattermost_webhook_url, discord_aprsmsg_wh_url,
+   telegram_bot_token, telegram_poswx_chat_id, aprsfikey, openweathermapkey, discord_poswx_wh_url, mattermost_poswx_wh_url, discord_aprsmsg_wh_url,
    pushover_token, pushover_userkey, slack_aprsmsg_wh_url, slack_poswx_wh_url, mattermost_poswx_api_key,
    mattermost_aprsmsg_wh_url,
    mattermost_aprsmsg_api_key,
