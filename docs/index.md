@@ -2,16 +2,6 @@ Welcome to APRSNotify - a python based bot script designed to send parsed APRS p
 
 This Wiki is designed as a user guide for the end users of the software.
 
-### Quick Navigation
-
-- [About APRSNotify](https://github.com/n8acl/aprsnotify/wiki/About-APRSNotify)
-- [Installation/Setup](https://github.com/n8acl/aprsnotify/wiki/Installation)
-- [Obtaining API Keys](https://github.com/n8acl/aprsnotify/wiki/Obtaining-API-Keys)
-- [Configuration Utility Guide](https://github.com/n8acl/aprsnotify/wiki/Configuration-Utility-Walkthrough)
-- [Configuration for Club Servers (for Server Admins)](https://github.com/n8acl/aprsnotify/wiki/Club-Server-Admin-Guide)
-- [Running the Script](https://github.com/n8acl/aprsnotify/wiki/Running-The-Script)
-- [Change Log (changes prior to 2022)](https://github.com/n8acl/aprsnotify/wiki/Change-Log)
-
 ### Supported Social Networks
 
 | Function | Supported Services|
