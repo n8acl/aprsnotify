@@ -1,0 +1,48 @@
+site_name: APRSNotify Wiki
+site_url: https://n8acl.github.io/aprsnotify
+repo_url: https://github.com/n8acl/aprsnotify
+theme:
+  name: 'material'
+  font:
+    text: 'Ubuntu'
+    code: 'Ubuntu Mono'
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: light
+      primary: 'amber'
+      accent: 'orange'
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Embrace the dark side
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: 'deep orange'
+      accent: 'amber'
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - def_list
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
+
+nav:
+  - Welcome!: index.md
+  - About APRSNotify: about_aprsnotfy.md
+  - Getting Started: 
+    - Installation/Setup: Installation.md
+    - Obtaining API Keys: obtaining_api_keys.md
+    - Configuration Utility Guide: configuration_guide.md
+    - Configuration for Club Servers (for Server Admins): club_server_admin_guide.md
+    - Running the Script: running_the_script.md
+  - Change Log (changes prior to 2022): changelog.md
+
+extra:
+  social:
+    - icon: 'fontawesome/brands/discord'
+      link: 'https://discord.gg/6VgdWw3vM4'
+

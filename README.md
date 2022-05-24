@@ -4,9 +4,9 @@ APRSNotify is a python based bot script designed to send parsed APRS packet data
 
 This software is for use by Amateur Radio Operators only.
 
-This bot was designed to be used by one person with multiple APRS Trackers to track packets for that one person.
+This bot was designed to be used by one person with multiple APRS Trackers to track packets for that one person. There is the ability to send to club chat servers, but again, each person will need to run their own copy of the script. However, a club hosted version is in the works.
 
-Please see [the Wiki](https://github.com/n8acl/aprsnotify/wiki) for more information and [installation](https://github.com/n8acl/aprsnotify/wiki/Installation) and [configuration](https://github.com/n8acl/aprsnotify/wiki/Configuration-Utility-Walkthrough) steps as well as [running the script](https://github.com/n8acl/aprsnotify/wiki/Running-The-Script).
+Please see [the Wiki](https://n8acl.github.io/aprsnotify) for more information and installation and configuration steps as well as running the script.
 
 ##### Working Examples:
 - Twitter: [@n8acl_aprs](https://twitter.com/n8acl_aprs)
@@ -45,7 +45,13 @@ Please see [the Wiki](https://github.com/n8acl/aprsnotify/wiki) for more informa
 
 ---
 
-## UPGRADE TO RELEASE 01222022
+## UPGRADE TO RELEASE 01222022 - Minor Release 05/24/2022
+
+#### Updating to current Minor Release
+
+On 05/24/2022 I have created a minor release that does not require running the update script. This just adds the new wiki and a minor update to how Telegram sends messages. Just do a ```git pull``` in your folder where you have the script cloned and it will update correctly.
+
+#### Normal Upgrade
 
 To upgrade to the current version of the script, please run the update.py script. It will update your database to the most current version.
 
@@ -72,9 +78,9 @@ APRS.FI API Limitations issues found and troubleshot by [Alex Bowman, KN4KNG](ht
 
 Installation of the Verison 4 scripts troubleshot by Diego, EA3ICN.
 
-Pushover mechanics from [Micheal Clemens, DL6MHC](https://qrz.is/)
+Pushover Notification API mechanics from [Micheal Clemens, DL6MHC](https://qrz.is/)
 
-APRS and the APRS System and associated copyright were developed by Bob Bruninga, WB4APR [http://www.aprs.org](http://www.aprs.org).
+APRS and the APRS System and associated copyright were developed by Bob Bruninga, WB4APR (SK) [http://www.aprs.org](http://www.aprs.org).
 
 ---
 
@@ -94,6 +100,11 @@ If you reach out to me and have an error, please include what error you are gett
 
 ## Change Log
 
+* 05/24/2022 - Minor updates - *** THIS DOES NOT REQUIRE RUNNING THE UPDATE SCRIPT ***
+  * Moved Wiki to Github pages using MKDocs - [Link](https://n8acl.github.io/aprsnotify)
+  * Minor Change to how Telegram sends messages
+  * Updates to README.md file
+
 * 01/21/2022 - Release 01222022
   - Added Support for Slack
   - Added Messaging support for Mattermost, Slack
@@ -103,7 +114,7 @@ If you reach out to me and have an error, please include what error you are gett
   - Fixed Various bugs found
   - Updates to Wiki
     - Added Club Configuration and how to for server admins to allow club members to send to the server.
-    - Moved Change Log entres prior to 2022 [to a wiki page](https://github.com/n8acl/aprsnotify/wiki/Change-Log). This is to help clean up the README File a little.
+    - Moved Change Log entres prior to 2022 [to a wiki page](https://n8acl.github.io/n8acl/aprsnotify). This is to help clean up the README File a little.
 
 * 01/16/2022
   - Fixed issue with weather part of the status message

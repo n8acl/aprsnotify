@@ -187,10 +187,9 @@ def send_telegram(msg, msg_type, lat,lng, bot_token, chat_id):
 
     # Sends the message text to Telegram. This is used for both status and message sending
     bot = telegram.Bot(token=bot_token)
-    if msg_type in [1,2]:
-        bot.sendMessage(chat_id=chat_id, text=msg)
-    else:
-        bot.sendMessage(chat_id=chat_id, text=msg)
+
+    bot.sendMessage(chat_id=chat_id, text=msg)
+
     if (include_map_image_telegram == 1 and msg_type not in [2,3]): # Includes a map of the packet location in Telegram
         bot.sendLocation(chat_id=chat_id, latitude=lat, longitude=lng, disable_notification=True)
 
