@@ -749,7 +749,7 @@ if aprsmsg_notify_telegram or aprsmsg_notify_discord or aprsmsg_notify_mattermos
 
         if not debug:
             if aprsmsg_notify_telegram:
-                send_telegram(msg_status, msg_type, lat,lng, telegramkeys["my_bot_token"], telegramkeys["msg_chat_id"])
+                send_telegram(msg_status, msg_type, lat,lng, telegramkeys["my_bot_token"], telegramkeys["telegram_aprsmsg_chat_id"])
             if aprsmsg_notify_discord:
                 send_discord(msg_status,discordwh["aprsmsg_wh_url"], msg_type)
             if aprsmsg_notify_pushover:
