@@ -32,7 +32,7 @@ markdown_extensions:
 
 nav:
   - Welcome!: index.md
-  - About APRSNotify: about_aprsnotfy.md
+  - About APRSNotify: about.md
   - Getting Started: 
     - Installation/Setup: Installation.md
     - Obtaining API Keys: obtaining_api_keys.md
@@ -40,9 +40,4 @@ nav:
     - Configuration for Club Servers (for Server Admins): club_server_admin_guide.md
     - Running the Script: running_the_script.md
   - Change Log (changes prior to 2022): changelog.md
-
-extra:
-  social:
-    - icon: 'fontawesome/brands/discord'
-      link: 'https://discord.gg/6VgdWw3vM4'
 
