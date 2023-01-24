@@ -744,6 +744,8 @@ if aprsmsg_notify_telegram or aprsmsg_notify_discord or aprsmsg_notify_mattermos
         msg_status = "On " + msg_datestamp + " at " + msg_timestamp + ", " + srccall + " sent " + dstcall + " the following APRS message: " + msg
 
         msg_type = 3 # APRS Message Notification
+        lat = 0
+        lng = 0
 
         if not debug:
             if aprsmsg_notify_telegram:
