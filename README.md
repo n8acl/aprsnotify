@@ -98,39 +98,9 @@ If you reach out to me and have an error, please include what error you are gett
 
 ---
 
-## Change Log
+## Change Log 
+Changes Prior to current year have been moved to the [ChangeLog](https://n8acl.github.io/aprsnotify/changelog/) on the wiki.
 
 * 01/24/2023 - Minor Update
-  * Put the flask package back in the requirements.txt file. Accidently deleted it and did not realize it.
+  * Put the flask package back in the requirements.txt file. Accidently deleted it and did not realize it. (Thanks to [Russ, KV4S](https://github.com/Russell-KV4S) for catching this one.)
 
-* 05/24/2022 - Minor updates - *** THIS DOES NOT REQUIRE RUNNING THE UPDATE SCRIPT ***
-  * Moved Wiki to Github pages using MKDocs - [Link](https://n8acl.github.io/aprsnotify)
-  * Minor Change to how Telegram sends messages
-  * Updates to README.md file
-
-* 01/21/2022 - Release 01222022
-  - Added Support for Slack
-  - Added Messaging support for Mattermost, Slack
-  - Added Support to send to Club Servers (See above networks table for supported networks)
-  - Added ability to find current release number from command line
-  - Changed versioning system to date of release (similar to Home Assistant and other applications)
-  - Fixed Various bugs found
-  - Updates to Wiki
-    - Added Club Configuration and how to for server admins to allow club members to send to the server.
-    - Moved Change Log entres prior to 2022 [to a wiki page](https://n8acl.github.io/n8acl/aprsnotify). This is to help clean up the README File a little.
-
-* 01/16/2022
-  - Fixed issue with weather part of the status message
-
-* 01/15/2022 - Minor update
-  - Fixed error in message sending to Pushover
-  - Fixed error in packet status creation with fixed station
-  - Fixed error in sending messages notification via Discord
-
-* 01/12/2022 - Version 6.0 Release
-  - Added support for Discord and Pushover for Message Notitification
-  - Added Support for Mattermost for Position and Weather packet data
-  - Split out configuration for message notification to new screen in Config Utility
-  - Added number of callsigns in the callsign lists on Config Utility
-  - Added the prevention of adding more callsigns then able to be handled by aprs.fi api
-  - Pull version number from database for Config Utility
