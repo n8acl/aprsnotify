@@ -32,6 +32,7 @@ except ImportError:
     exit('This script requires the requests module\nInstall with: pip3 install requests')
 try:
     import telegram
+    from telegram import Bot
 except ImportError:
     exit('This script requires the python-telegram-bot module\nInstall with: pip3 install python-telegram-bot')
 try:
