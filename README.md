@@ -39,7 +39,7 @@ Due to the announcement that Twitter will be Discontinuing the free developer AP
 ---
 
 ### Use Cases
-* Sending an APRS packet to Mastodon for your followers to see.
+* Sending an APRS Position packet to Social Media for your followers to see.
 * Sending Weather data from APRS to Social Media.
 * Sending APRS data to yourself to confirm that it is making it to the internet.
 * Sending your position information to a Telegram/Discord/Mattermost/Slack Channel that you have your non-ham radio family and friends on so they can track you when you are traveling by car for a long distance.
