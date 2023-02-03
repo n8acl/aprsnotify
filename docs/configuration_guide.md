@@ -47,7 +47,8 @@ To navigate through any of the menus in the program, just click on the selection
 
 When you first connect to the utiltiy from the browser, you are presented with the following screen:
 
-![Screen Shot 2022-01-22 at 01 35 20](https://user-images.githubusercontent.com/40501228/150627923-409a9112-8b54-41e2-876d-3bedf1b49313.png)
+![2023-02-03_09h57_49](https://user-images.githubusercontent.com/40501228/216635042-2a97f671-a417-4d87-9a1c-4319b360d92b.png)
+
 
 This is the main menu. From here you can select where to go. Just click on the option you want to configure.
 
@@ -55,7 +56,7 @@ This is the main menu. From here you can select where to go. Just click on the o
 
 After choosing this option, you are presented with the following screen:
 
-![Screen Shot 2022-01-22 at 01 36 45](https://user-images.githubusercontent.com/40501228/150627959-565722e6-bb18-4397-ab37-3384b94f95a2.png)
+![2023-02-03_09h58_36](https://user-images.githubusercontent.com/40501228/216635228-077bbdd7-2494-47e3-9415-c02b3e46e0ba.png)
 
 
 
@@ -71,7 +72,7 @@ Here you can set the following options:
 
 After choosing this option, you will be presented with the following menu:
 
-![Screen Shot 2022-01-22 at 01 37 26](https://user-images.githubusercontent.com/40501228/150627994-f39248dc-bddb-40be-8df0-7c9253131fd7.png)
+![2023-02-03_09h59_23](https://user-images.githubusercontent.com/40501228/216635426-7570486c-d3fb-45a8-8200-a1187bcfcec1.png)
 
 Here you can add and delete from each of the lists as needed. To add just select the add option or delete the delete option and then select the list you want to modify and then enter the list of callsigns you want to add, seperated by commas.
 
@@ -81,19 +82,19 @@ Example: "Add to POS Callsign List the following Callsigns: n8acl-9, n8acl-6, n8
 
 After Selecting this option, you will be presented with a menu similar to this one:
 
-![Screen Shot 2022-01-22 at 01 38 18](https://user-images.githubusercontent.com/40501228/150628019-97e571ef-d8d8-4ec3-b98e-f5defa18e348.png)
+![2023-02-03_10h01_37](https://user-images.githubusercontent.com/40501228/216636715-914e4069-3acc-4f76-8bb5-55e5cdccc58b.png)
 
 This is a very long screen, but this is where you will configure most all the networks that APRSNotify will send to. All you need to do is enter the information asked for for the services you want to use and click the submit button in the box of that service.
 
 So for example, if you want to modify the keys for Telegram, you would select Yes, paste the tokens into the appropriate fields or decide if you want to use Map inclusion and click submit.
 
-The options for Mastodon are a little bit different. In order to change the tokens for this service, you need to enter the information asked for in the fields and when you click submit, the program will go out and generate the correct keys for you. ONLY DO THIS IS IF YOU ABSOLUTLY NEED NEW KEYS.
+The options for Mastodon are a little bit different. In order to change the tokens for this service, you need to enter the information asked for in the fields and when you click submit, the program will go out and generate the correct keys for you. **ONLY DO THIS IS IF YOU ABSOLUTELY NEED NEW KEYS**.
 
 ### 5: Configure Messaging Notification Services
 
 When you click on this option, you will be presented with a screen similiar to this:
 
-![Screen Shot 2022-01-22 at 01 39 45](https://user-images.githubusercontent.com/40501228/150628062-0a58a9da-f23e-4933-867a-85aaf66d775b.png)
+![2023-02-03_10h05_46](https://user-images.githubusercontent.com/40501228/216636970-550911fa-e84d-497f-8c50-4dbb4d23cc82.png)
 
 This is where you set your options and where you would like the message Notification to go to.
 
@@ -105,7 +106,7 @@ I would recommend for Discord, Mattermost and Slack, setting a private channel o
 
 When you click on this option, you will be presented with a screen similiar to this:
 
-![Screen Shot 2022-01-22 at 01 41 39](https://user-images.githubusercontent.com/40501228/150628128-7f8c7b52-79bd-4838-aacb-31d84f5a7923.png)
+![2023-02-03_10h07_22](https://user-images.githubusercontent.com/40501228/216637280-f96ca6e4-6a20-4a44-8968-2bcb432690ee.png)
 
 If your club runs one of these servers, and allows it, this would allow for the option for members to be able to send to packet information to a channel on that server. The server admin would need to provide you with keys or webhook url's to be able to paricipate.
 
@@ -113,7 +114,7 @@ If your club runs one of these servers, and allows it, this would allow for the 
 
 When you select this option, you will get a screen similiar to the following:
 
-![Screen Shot 2022-01-22 at 01 44 45](https://user-images.githubusercontent.com/40501228/150628195-8425979f-221d-4722-b686-5c9dbd412653.png)
+![2023-02-03_10h06_40](https://user-images.githubusercontent.com/40501228/216637131-239fafee-b0a9-4c7c-b90a-173fdb442581.png)
 
 Here is where you can paste your APRS.Fi API key and your OpenWeatherMap API Key. Click submit under the appropriate category to store the keys.
 

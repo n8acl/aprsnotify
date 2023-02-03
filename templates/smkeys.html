@@ -7,51 +7,12 @@
     <body>
         <h1>{{ page_title }}</h1>
         <b>For help please see the APRSnotify Wiki: <br>
-        <a href="https://github.com/n8acl/aprsnotify/wiki" target="top">https://github.com/n8acl/aprsnotify/wiki</a></b> <br><br>
+        <a href="{{ wiki_url }}" target="top">{{ wiki_url }}</a></b> <br><br>
         <a href="../">Return to Main Menu</a> <br><br>
 
         <h2>Configure Social Media Services</h2>
         <table border=1>
             <tr>    
-                <td> <!-- Twitter Settings -->
-                    <form action="{{url_for('update_api_keys') }}" method="POST">
-                        <input type = "hidden" name="app" value="twitter">
-                    <table border=0>
-                        {% for config_row in config_settings %}
-                            <tr>
-                                <td colspan = 2><b>Twitter Settings</b><br>Send to Twitter? 
-                            {% if config_row[0] == True: %}
-                                <input type="radio" name="send_to_twitter" value = "1" checked>Yes <input type="radio" name="send_to_twitter" value = "0" >No
-                            {% else %}
-                                <input type="radio" name="send_to_twitter" value = "1">Yes <input type="radio" name="send_to_twitter" value = "0" checked>No
-                            {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}    
-                        {% for row in twitter_keys %}
-                            <tr>
-                            <td>Consumer Key:</td><td><input type="text" name="twitter_consumer_key" size="50" value="{{ row[0] }}"> </td>
-                            </tr>
-                            <tr>
-                            <td>Consumer Secret:</td><td><input type="text" name="twitter_consumer_secret" size="50" value="{{ row[1] }}"></td>
-                            </tr>
-                            <tr>
-                            <td>Access Token:</td><td><input type="text" name="twitter_access_token" size="50" value="{{ row[2] }}"></td>
-                            </tr>
-                            <tr>
-                            <td>Access Secret:</td><td><input type="text" name="twitter_access_secret" size="50" value="{{ row[3] }}"></td>
-                            </tr>
-                            <tr>
-                            <td colspan=2>
-                                <input type="submit" name="submit" value="Submit">
-                                <input type="submit" name="submit" value="Clear">
-                            </td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-                    </form>
-                </td>
-                </tr>
                 <tr>
                 <td valign = "top"> <!-- Telegram Settings -->
                     <form action="{{url_for('update_api_keys') }}" method="POST">

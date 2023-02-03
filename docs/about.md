@@ -13,7 +13,7 @@
 
 | Function | Supported Services|
 |----------|------------------|
-|Position Packet Data<br>Weather Packet Data| Twitter, Telegram, Mastodon, Discord, Mattermost, Slack|
+|Position Packet Data<br>Weather Packet Data| Telegram, Mastodon, Discord, Mattermost, Slack|
 |Message Notification| Telegram, Discord, Pushover, Mattermost, Slack|
 |Send Packet Data<br>to Club Server| Telegram, Discord, Mattermost, Slack|
 

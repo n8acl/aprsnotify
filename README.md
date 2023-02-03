@@ -1,5 +1,6 @@
 # APRSNotify
-###### Current Release 01222022
+
+###### Current Release 02032023
 APRSNotify is a python based bot script designed to send parsed APRS packet data to various Social Media or Communications networks.
 
 This software is for use by Amateur Radio Operators only.
@@ -9,14 +10,16 @@ This bot was designed to be used by one person with multiple APRS Trackers to tr
 Please see [the Wiki](https://n8acl.github.io/aprsnotify) for more information and installation and configuration steps as well as running the script.
 
 ##### Working Examples:
-- Twitter: [@n8acl_aprs](https://twitter.com/n8acl_aprs)
 - Mastodon: [You will need to follow n8acl_aprs@botsin.space.](https://botsin.space/@n8acl_aprs)
+
+#### Important Note
+Due to the announcement that Twitter will be Discontinuing the free developer API on February 9, 2023, as of February 3, 2023 APRSNotify no longer supports Twitter. You will need to update to the current release if you are running APRSNotify to remove the Twitter support if you want to continue using it.
 
 ##### Currently Supported Networks/Functions
 
 | Function | Supported Services|
 |----------|------------------|
-|Position Packet Data<br>Weather Packet Data| Twitter, Telegram, Mastodon, Discord, Mattermost, Slack|
+|Position Packet Data<br>Weather Packet Data| Telegram, Mastodon, Discord, Mattermost, Slack|
 |Message Notification| Telegram, Discord, Pushover, Mattermost, Slack|
 |Send Packet Data<br>to Club Server| Telegram, Discord, Mattermost, Slack|
 
@@ -45,15 +48,11 @@ Please see [the Wiki](https://n8acl.github.io/aprsnotify) for more information a
 
 ---
 
-## UPGRADE TO RELEASE 01222022 - Minor Release 05/24/2022
-
-#### Updating to current Minor Release
-
-On 05/24/2022 I have created a minor release that does not require running the update script. This just adds the new wiki and a minor update to how Telegram sends messages. Just do a ```git pull``` in your folder where you have the script cloned and it will update correctly.
+## UPGRADE TO RELEASE 02032023
 
 #### Normal Upgrade
 
-To upgrade to the current version of the script, please run the update.py script. It will update your database to the most current version.
+To upgrade to the current version of the script, enter the folder where you have the APRSNotify scrpts and do a ```git pull -ff``` to get the newest updated scripts. Then please run the update.py ```python3 update.py``` script. It will update your database to the most current version.
 
 If you are installing the whole script for the first time (i.e. have never used APRSNotify before), please run an_util.py instead. Only run the upgrade script if you have used APRSNotify before and have previously upgraded to version 4.
 
@@ -87,7 +86,6 @@ APRS and the APRS System and associated copyright were developed by Bob Bruninga
 ## Contact
 If you have questions, please feel free to reach out to me. You can reach me in one of the following ways:
 
-- Twitter: @n8acl
 - Discord: Ravendos#7364
 - Mastodon: @n8acl@mastodon.radio
 - E-mail: n8acl@qsl.net
@@ -100,6 +98,10 @@ If you reach out to me and have an error, please include what error you are gett
 
 ## Change Log 
 Changes Prior to current year have been moved to the [ChangeLog](https://n8acl.github.io/aprsnotify/changelog/) on the wiki.
+
+* 02/03/2023
+  * Removed support for Twitter from the script. 
+  * Updated the Wiki to reflect current changes to the script.
 
 * 01/24/2023 - Minor Update
   * Put the flask package back in the requirements.txt file. Accidently deleted it and did not realize it. (Thanks to [Russ, KV4S](https://github.com/Russell-KV4S) for catching this one.)

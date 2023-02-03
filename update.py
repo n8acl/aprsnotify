@@ -339,5 +339,150 @@ if version == 6.0:
     sql = "alter table apikeys add slack_club_wh_url text null;"
     run_sql(conn, sql) 
 
-    sql = "update config set version = '01222022';"
+    sql = "update config set version = '01202022';"
     run_sql(conn, sql)
+
+ver = select_sql(conn, "select version from config;")
+for row in ver:
+   version = row[0]
+
+if version == '01202022':
+    
+    # Drop Twitter columns from config table
+    sql = """
+        create table config_new (
+        telegram boolean,
+        mastodon boolean,
+        discord boolean,
+        mattermost boolean,
+        slack boolean,
+        units_to_use int,
+        include_map_image_telegram boolean,
+        include_wx boolean,
+        send_position_data boolean,
+        send_weather_data boolean,
+        aprsmsg_notify_telegram boolean,
+        aprsmsg_notify_discord boolean,
+        aprsmsg_notify_pushover boolean,
+        aprsmsg_notify_slack boolean,
+        aprsmsg_notify_mattermost boolean,
+        club_telegram boolean,
+        club_discord boolean,
+        club_mattermost boolean,
+        club_slack boolean,
+        version text
+        ); """
+
+    run_sql(conn, sql) 
+
+    sql = """
+    insert into config_new (telegram, mastodon, discord, mattermost, slack, units_to_use, include_map_image_telegram, include_wx, send_position_data, send_weather_data, 
+    aprsmsg_notify_telegram, aprsmsg_notify_discord, aprsmsg_notify_pushover, aprsmsg_notify_slack, aprsmsg_notify_mattermost, club_telegram, club_discord, club_mattermost, 
+    club_slack, version)
+
+    select 
+    telegram,
+    mastodon,
+    discord,
+    mattermost,
+    False as slack,
+    units_to_use,
+    include_map_image_telegram,
+    include_wx,
+    send_position_data,
+    send_weather_data,
+    aprsmsg_notify_telegram,
+    aprsmsg_notify_discord,
+    aprsmsg_notify_pushover,
+    False as aprsmsg_notify_slack,
+    False as aprsmsg_notify_mattermost,
+    False as club_telegram,
+    False as club_discord,
+    False as club_mattermost,
+    False as club_slack,
+    0 as version
+    from config;
+
+    """
+    run_sql(conn, sql)
+
+    sql = "drop table config;"
+    run_sql(conn, sql)
+
+    sql = "alter table config_new rename to config;"    
+    run_sql(conn, sql)
+
+    # Drop twitter columns from API Keys table
+
+    sql = """
+        create table apikeys_new (
+        telegram_bot_token text null,
+        telegram_poswx_chat_id text null,
+        aprsfikey text null,
+        openweathermapkey text null,
+        mastodon_client_id text null,
+        mastodon_client_secret text null,
+        mastodon_api_base_url text null,
+        mastodon_user_access_token text null,
+        discord_poswx_wh_url text null,
+        mattermost_poswx_wh_url text null,
+        discord_aprsmsg_wh_url text null,
+        pushover_token text null,
+        pushover_userkey text null,
+        slack_aprsmsg_wh_url text null,
+        slack_poswx_wh_url text null,
+        mattermost_poswx_api_key text null,
+        mattermost_aprsmsg_wh_url text null,
+        mattermost_aprsmsg_api_key text null,
+        telegram_aprsmsg_chat_id text null,
+        telegram_club_chat_id text null,
+        telegram_club_bot_token text null,
+        discord_club_wh_url text null,
+        mattermost_club_wh_url text null,
+        mattermost_club_api_key text null,
+        slack_club_wh_url text null
+        ); """
+
+    run_sql(conn, sql) 
+
+    sql = """
+    insert into apikeys_new (telegram_bot_token, telegram_my_chat_id, aprsfikey, openweathermapkey, discord_poswx_wh_url, mattermost_webhook_url, discord_aprsmsg_wh_url,
+   pushover_token, pushover_userkey, slack_aprsmsg_wh_url, slack_poswx_wh_url, mattermost_poswx_api_key,
+   mattermost_aprsmsg_wh_url,
+   mattermost_aprsmsg_api_key,
+   telegram_aprsmsg_chat_id,
+      telegram_club_chat_id,
+   telegram_club_bot_token,
+   discord_club_wh_url,
+   mattermost_club_wh_url,
+   mattermost_club_api_key,
+   slack_club_wh_url)
+
+    select 
+telegram_bot_token, telegram_my_chat_id, aprsfikey, openweathermapkey, discord_poswx_wh_url, mattermost_webhook_url, discord_aprsmsg_wh_url,
+   pushover_token, pushover_userkey, slack_aprsmsg_wh_url, slack_poswx_wh_url, mattermost_poswx_api_key,
+   mattermost_aprsmsg_wh_url,
+   mattermost_aprsmsg_api_key,
+   telegram_aprsmsg_chat_id,
+      telegram_club_chat_id,
+   telegram_club_bot_token,
+   discord_club_wh_url,
+   mattermost_club_wh_url,
+   mattermost_club_api_key,
+   slack_club_wh_url
+   from apikeys;
+
+    """
+    run_sql(conn, sql)
+
+    sql = "drop table apikeys;"
+    run_sql(conn, sql)
+
+    sql = "alter table apikeys_new rename to apikeys;"    
+    run_sql(conn, sql)
+
+    sql = "update config set version = '02032023';"
+    run_sql(conn, sql)
+
+
+

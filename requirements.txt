@@ -1,9 +1,7 @@
 python-telegram-bot
-Tweepy
 geopy
 requests
 aprslib
 mastodon.py
 discord_webhook
 matterhook
-flask

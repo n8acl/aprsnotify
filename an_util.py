@@ -10,7 +10,8 @@ app = Flask(__name__)
 database = os.path.dirname(os.path.abspath(__file__)) +  "/aprsnotify.db"
 linefeed = "\n"
 html_linefeed = "<br>"
-current_version = '01222021'
+current_version = '02032023'
+wiki_url = 'https://n8acl.github.io/aprsnotify/'
 
 # Define functions
 
@@ -35,7 +36,6 @@ def exec_sql(conn,sql):
 def new(conn, version):
 
    create_config_table = """ create table if not exists config (
-      twitter boolean,
       telegram boolean,
       mastodon boolean,
       discord boolean,
@@ -70,10 +70,6 @@ def new(conn, version):
 ); """
 
    create_apikeys_table = """ create table if not exists apikeys (
-   twitter_consumer_key text null,
-   twitter_consumer_secret text null,
-   twitter_access_token text null,
-   twitter_access_secret text null,
    telegram_bot_token text null,
    telegram_poswx_chat_id text null,
    aprsfikey text null,
@@ -107,7 +103,6 @@ def new(conn, version):
    exec_sql(conn, create_apikeys_table)
 
    sql = """insert into config (
-      twitter,
       telegram,
       mastodon,
       discord,
@@ -127,12 +122,12 @@ def new(conn, version):
       club_mattermost,
       club_slack, 
       version)
-    values (False,False,False,False,1,False,False,False,False,False,False,False,False,False,False,False,False,False,False,'""" + version + """');"""
+    values (False,False,False,1,False,False,False,False,False,False,False,False,False,False,False,False,False,'""" + version + """');"""
 
    exec_sql(conn,sql)
 
-   sql = """insert into apikeys (twitter_consumer_key, twitter_consumer_secret, twitter_access_token, twitter_access_secret,
-   telegram_bot_token, telegram_poswx_chat_id, aprsfikey, openweathermapkey, discord_poswx_wh_url, mattermost_poswx_wh_url, discord_aprsmsg_wh_url,
+   sql = """insert into apikeys (
+   telegram_bot_token, telegram_my_chat_id, aprsfikey, openweathermapkey, discord_poswx_wh_url, mattermost_webhook_url, discord_aprsmsg_wh_url,
    pushover_token, pushover_userkey, slack_aprsmsg_wh_url, slack_poswx_wh_url, mattermost_poswx_api_key,
    mattermost_aprsmsg_wh_url,
    mattermost_aprsmsg_api_key,
@@ -144,7 +139,7 @@ def new(conn, version):
    mattermost_club_api_key,
    slack_club_wh_url
    )
-   values(null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);"""
+   values(null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);"""
 
    exec_sql(conn,sql)
 
@@ -181,14 +176,13 @@ def index():
 @app.route('/smkeys')
 def smkeys():
    conn = create_connection(database)
-   twitter_keys = select_sql(conn, "select ifnull(twitter_consumer_key,'None') as twitter_consumer_key, ifnull(twitter_consumer_secret,'None') as twitter_consumer_secret, ifnull(twitter_access_token,'None') as twitter_access_token, ifnull(twitter_access_secret,'None') as twitter_access_secret from apikeys")
    telegram_keys = select_sql(conn, "select ifnull(telegram_bot_token,'None') as telegram_bot_token, ifnull(telegram_poswx_chat_id,'None') as telegram_poswx_chat_id from apikeys")
    mastodon_keys = select_sql(conn, "select ifnull(mastodon_client_id,'None') as mastodon_client_id, ifnull(mastodon_client_secret,'None') as mastodon_client_secret, ifnull(mastodon_api_base_url,'None') as mastodon_api_base_url, ifnull(mastodon_user_access_token,'None') as mastodon_user_access_token from apikeys")
    discord_keys = select_sql(conn, "select ifnull(discord_poswx_wh_url, 'None') as discord_poswx_wh_url from apikeys")
    mattermost_keys = select_sql(conn, "select ifnull(mattermost_poswx_wh_url, 'None') as mattermost_poswx_wh_url, ifnull(mattermost_poswx_api_key, 'None') as mattermost_poswx_api_key from apikeys")
    slack_keys = select_sql(conn, "select ifnull(slack_poswx_wh_url, 'None') as slack_poswx_wh_url from apikeys")
-   config_settings = select_sql(conn, "select twitter, telegram, mastodon, include_map_image_telegram, discord, mattermost, slack from config")
-   return render_template('smkeys.html',twitter_keys = twitter_keys, config_settings = config_settings, telegram_keys = telegram_keys, mastodon_keys = mastodon_keys, discord_keys = discord_keys, mattermost_keys = mattermost_keys, slack_keys = slack_keys, page_title = page_title)
+   config_settings = select_sql(conn, "select telegram, mastodon, include_map_image_telegram, discord, mattermost, slack from config")
+   return render_template('smkeys.html', config_settings = config_settings, telegram_keys = telegram_keys, mastodon_keys = mastodon_keys, discord_keys = discord_keys, mattermost_keys = mattermost_keys, slack_keys = slack_keys, page_title = page_title, wiki_url = wiki_url)
    conn.close()
 
 @app.route('/msgsettings')
@@ -201,7 +195,7 @@ def msgsettings():
    slack_keys = select_sql(conn, "select ifnull(ifnull(slack_aprsmsg_wh_url, slack_poswx_wh_url),'None') as slack_aprsmsg_wh_url from apikeys")
    config_settings = select_sql(conn, "select aprsmsg_notify_telegram, aprsmsg_notify_discord, aprsmsg_notify_pushover, aprsmsg_notify_mattermost, aprsmsg_notify_slack from config")
    
-   return render_template('msgsettings.html', config_settings = config_settings, telegram_keys = telegram_keys, discord_keys = discord_keys, pushover_keys = pushover_keys, mattermost_keys = mattermost_keys, slack_keys = slack_keys, page_title = page_title)
+   return render_template('msgsettings.html', config_settings = config_settings, telegram_keys = telegram_keys, discord_keys = discord_keys, pushover_keys = pushover_keys, mattermost_keys = mattermost_keys, slack_keys = slack_keys, page_title = page_title, wiki_url = wiki_url)
    conn.close()
 
 @app.route('/clubsettings')
@@ -213,21 +207,21 @@ def clubsettings():
    slack_keys = select_sql(conn, "select ifnull(slack_club_wh_url,'None') as slack_club_wh_url from apikeys")
    config_settings = select_sql(conn, "select club_telegram, club_discord, club_mattermost, club_slack from config")
 
-   return render_template('clubsettings.html', config_settings = config_settings, telegram_keys = telegram_keys, discord_keys = discord_keys, mattermost_keys = mattermost_keys, slack_keys = slack_keys, page_title = page_title)
+   return render_template('clubsettings.html', config_settings = config_settings, telegram_keys = telegram_keys, discord_keys = discord_keys, mattermost_keys = mattermost_keys, slack_keys = slack_keys, page_title = page_title, wiki_url = wiki_url)
    conn.close()
 
 @app.route('/otherapikeys')
 def otherapikeys():
    conn = create_connection(database)
    apikeys = select_sql(conn, "select aprsfikey, openweathermapkey from apikeys")
-   return render_template('otherapikeys.html', apikeys = apikeys, page_title = page_title)
+   return render_template('otherapikeys.html', apikeys = apikeys, page_title = page_title, wiki_url = wiki_url)
    conn.close()
 
 @app.route('/configuration')
 def configuration():
    conn = create_connection(database)
    configsettings = select_sql(conn, "select units_to_use, include_wx, send_position_data, send_weather_data from config")
-   return render_template('configuration.html', configs = configsettings, page_title = page_title)
+   return render_template('configuration.html', configs = configsettings, page_title = page_title, wiki_url = wiki_url)
    conn.close()
 
 @app.route('/callsignlists')
@@ -240,50 +234,21 @@ def callsignlists():
    wxcnt = select_sql(conn, "select count(callsign) as wxcnt from callsignlists where listtype = 'WX'")
    msgcnt = select_sql(conn, "select count(callsign) as msgcnt from callsignlists where listtype = 'MSG'") 
 
-   return render_template('callsignlists.html', poscallsignlist = poscallsignlist, wxcallsignlist = wxcallsignlist, msgcallsignlist = msgcallsignlist, poscnt = poscnt, wxcnt = wxcnt, msgcnt = msgcnt, page_title = page_title)
+   return render_template('callsignlists.html', poscallsignlist = poscallsignlist, wxcallsignlist = wxcallsignlist, msgcallsignlist = msgcallsignlist, poscnt = poscnt, wxcnt = wxcnt, msgcnt = msgcnt, page_title = page_title, wiki_url = wiki_url)
    conn.close()
 
 @app.route('/update_api_keys', methods = ['POST', 'GET'])
 def update_api_keys():
    conn = create_connection(database)
 
-   if request.method == 'POST' and request.form["app"] == "twitter":
-
-      header = "-------------------  " + request.form["app"].capitalize() + " API Keys -------------------"
-
-      try:
-
-         sql = "update apikeys set "
-         sql = sql + "twitter_consumer_key = '" + request.form["twitter_consumer_key"] + "', "
-         sql = sql + "twitter_consumer_secret = '" + request.form["twitter_consumer_secret"] + "', "
-         sql = sql + "twitter_access_token = '" + request.form["twitter_access_token"] + "', "
-         sql = sql + "twitter_access_secret = '" + request.form["twitter_access_secret"] + "';"
-
-         exec_sql(conn,sql)
-
-         sql = "update config set twitter = " 
-         if request.form["send_to_twitter"] == '1':
-            sql = sql + "True;"
-         else:
-            sql = sql + "False;"
-         
-         exec_sql(conn,sql)        
-
-         msg = request.form["app"].capitalize() + " Keys updated."
-
-      except:
-         conn.rollback()
-         msg = "Error in Operation."
-
-      finally:
-         return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title)
-         conn.close()
-
    if request.method == 'POST' and request.form["app"] == "telegram":
 
       header = "-------------------  " + request.form["app"].capitalize() + " API Keys -------------------"
 
       try:
+         telegram_bot_token = request.form["telegram_bot_token"]
+         telegram_poswx_chat_id = request.form["telegram_poswx_chat_id"]
+
 
          sql = "update apikeys set "
          sql = sql + "telegram_bot_token = '" + request.form["telegram_bot_token"] + "', "
@@ -312,7 +277,7 @@ def update_api_keys():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
    if request.method == 'POST' and request.form["app"] == "mastodon":
@@ -320,6 +285,11 @@ def update_api_keys():
       header = "-------------------  " + request.form["app"].capitalize() + " API Keys -------------------"
 
       try:
+
+         mastodon_instance_url = request.form["mastodon_instance_url"]
+         mastodon_bot_app_name = request.form["mastodon_bot_app_name"]
+         mastodon_username = request.form["mastodon_username"]
+         mastodon_password = request.form["mastodon_password"]
 
          client_keys = Mastodon.create_app(request.form["mastodon_bot_app_name"], scopes=['read', 'write'], api_base_url=request.form["mastodon_instance_url"])
 
@@ -349,7 +319,7 @@ def update_api_keys():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
    if request.method == 'POST' and request.form["app"] == "discord":
@@ -357,6 +327,8 @@ def update_api_keys():
       header = "-------------------  " + request.form["app"].capitalize() + " Webhook -------------------"
 
       try:
+
+         discord_webhook_url = request.form["discord_webhook_url"]
 
          sql = "update apikeys set "
          sql = sql + "discord_poswx_wh_url = '" + request.form["discord_poswx_wh_url"] + "';"
@@ -372,11 +344,11 @@ def update_api_keys():
          exec_sql(conn,sql)  
 
          msg = request.form["app"].capitalize() + " settings updated."
-      except Exception as err:
+      except:
          conn.rollback()
-         msg = "Error in Operation. "
+         msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
    if request.method == 'POST' and request.form["app"] == "mattermost":
@@ -384,6 +356,9 @@ def update_api_keys():
       header = "-------------------  " + request.form["app"].capitalize() + " Webhook -------------------"
 
       try:
+
+         mattermost_poswx_wh_url = request.form["mattermost_poswx_wh_url"]
+         mattermost_poswx_api_key = request.form["mattermost_poswx_api_key"]
 
          sql = "update apikeys set "
          sql = sql + "mattermost_poswx_wh_url = '" + request.form["mattermost_poswx_wh_url"] + "', "
@@ -405,7 +380,7 @@ def update_api_keys():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
    if request.method == 'POST' and request.form["app"] == "slack":
@@ -413,6 +388,8 @@ def update_api_keys():
       header = "-------------------  " + request.form["app"].capitalize() + " Webhook -------------------"
 
       try:
+
+         slack_poswx_wh_url = request.form["slack_poswx_wh_url"]
 
          sql = "update apikeys set "
          sql = sql + "slack_poswx_wh_url = '" + request.form["slack_poswx_wh_url"] + "';"
@@ -433,7 +410,7 @@ def update_api_keys():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="smkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
  
    if request.method == 'POST' and request.form["app"] == "aprsfi":
@@ -442,8 +419,10 @@ def update_api_keys():
 
       try:
 
+         aprsfikey = request.form["aprsfikey"]
+
          sql = "update apikeys set "
-         sql = sql + "aprsfikey = '" + request.form['aprsfikey'] + "';"
+         sql = sql + "aprsfikey = '" + aprsfikey + "';"
 
          exec_sql(conn,sql)
 
@@ -452,7 +431,7 @@ def update_api_keys():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="otherapikeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="otherapikeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
    if request.method == 'POST' and request.form["app"] == "openweathermap":
@@ -461,8 +440,10 @@ def update_api_keys():
 
       try:
 
+         openweathermapkey = request.form["openweathermapkey"]
+
          sql = "update apikeys set "
-         sql = sql + "openweathermapkey = '" + request.form['openweathermapkey'] + "';"
+         sql = sql + "openweathermapkey = '" + openweathermapkey + "';"
 
          exec_sql(conn,sql)
 
@@ -471,7 +452,7 @@ def update_api_keys():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="otherapikeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="otherapikeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
 @app.route('/update_configs', methods = ['POST', 'GET'])
@@ -512,7 +493,7 @@ def update_configs():
       conn.rollback()
       msg = "Error in Operation."
    finally:
-      return render_template("results.html", msg = msg, header = header, page="configuration", page_title = page_title)
+      return render_template("results.html", msg = msg, header = header, page="configuration", page_title = page_title, wiki_url = wiki_url)
       conn.close()
 
 @app.route('/update_msg_settings', methods = ['POST', 'GET'])
@@ -550,7 +531,7 @@ def update_msg_settings():
          msg = "Error in Operation."
 
       finally:
-         return render_template("results.html", msg = msg, header = header, page="msgkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="msgkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
    if request.method == 'POST' and request.form["app"] == "discord":
@@ -580,7 +561,7 @@ def update_msg_settings():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="msgkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="msgkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
    if request.method == 'POST' and request.form["app"] == "telegram":
@@ -612,7 +593,7 @@ def update_msg_settings():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="msgkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="msgkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
    if request.method == 'POST' and request.form["app"] == "mattermost":
@@ -644,7 +625,7 @@ def update_msg_settings():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="msgkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="msgkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
    if request.method == 'POST' and request.form["app"] == "slack":
@@ -674,7 +655,7 @@ def update_msg_settings():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="msgkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="msgkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
 @app.route('/update_club_settings', methods = ['POST', 'GET'])
@@ -708,7 +689,7 @@ def update_club_settings():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="clubkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="clubkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
    if request.method == 'POST' and request.form["app"] == "telegram":
@@ -740,7 +721,7 @@ def update_club_settings():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="clubkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="clubkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
    if request.method == 'POST' and request.form["app"] == "mattermost":
@@ -772,7 +753,7 @@ def update_club_settings():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="clubkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="clubkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
    if request.method == 'POST' and request.form["app"] == "slack":
@@ -802,7 +783,7 @@ def update_club_settings():
          conn.rollback()
          msg = "Error in Operation."
       finally:
-         return render_template("results.html", msg = msg, header = header, page="clubkeys", page_title = page_title)
+         return render_template("results.html", msg = msg, header = header, page="clubkeys", page_title = page_title, wiki_url = wiki_url)
          conn.close()
 
 @app.route('/update_callsign_lists', methods = ['POST', 'GET'])
@@ -843,7 +824,7 @@ def update_callsign_lists():
       msg = "Error in Operation."
 
    finally:
-      return render_template("results.html", msg = msg, header = header, page="callsignlists", page_title = page_title)
+      return render_template("results.html", msg = msg, header = header, page="callsignlists", page_title = page_title, wiki_url = wiki_url)
       conn.close()
 
 

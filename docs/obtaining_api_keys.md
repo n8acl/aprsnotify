@@ -23,13 +23,6 @@ Ham Radio Club/Group Server Owners: See the [Configuration for Club Servers (for
 * If you are not going to include current weather conditions in the position status message, you do not need this key. However, if you want to include this, you will need this key.
   - NOTE: This is a free account, but you are limited to 60 calls per minute and 1000 calls per day.
 
-##### Twitter
-
-If you are using Twitter, you are more than welcome to use your main account, however, I would recommend creating a seperate bot account for your APRS bot, like I did with [@n8acl_aprs](https://twitter.com/n8acl_aprs). That way anyone who wants to can follow you there and you don't have to clog up your main Twitter account.
-
-* If you plan on using Twitter:
-    - You will need to create a new app and get a consumer key, consumer secret, access token and access secret for the account you are wanting to post to. You can get those keys from the Twitter development site. Here is a walk through how: [Generate Twitter API Keys](https://www.slickremix.com/docs/how-to-get-api-keys-and-tokens-for-twitter/)
-
 ##### Telegram
 
 If using Telegram, note that any bot you have will work. For example, if you have a bot that you already use for your home automations, you could use that bot for this as well. I created a seperate bot from my home automation bot for APRS/Ham Radio use, but I could have just as easily used my home automation bot.
@@ -76,7 +69,7 @@ If using Telegram, note that any bot you have will work. For example, if you hav
 ##### Pushover
 
 * Pushover is a service that sends notifications to your phone, tablet and computer.
-* **It is important to note that, while they have a free trial, it is a paid service. It is $4.99 for every platform you want to use it on after a 30 Day trial, but you only pay that $4.99 once for every platform you are using it on.**
+* **It is important to note that, while they have a free trial, it is a paid service. It is \$4.99 for every platform you want to use it on after a 30 Day trial, but you only pay that \$4.99 once for every platform you are using it on.**
 * This is the only paid service that this app supports.
 * While I am not advocating buying the service, I know that some people use it for other things already and it was an easy add to the program.
 * More information about Pushover can be found [here](https://pushover.net/).
