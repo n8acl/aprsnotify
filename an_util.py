@@ -159,6 +159,7 @@ if not os.path.exists(database):
 # Get Version Number from Database
 conn = create_connection(database)
 ver = select_sql(conn, "select version from config;")
+version = ""
 for row in ver:
    version = row[0]
 conn.close()
