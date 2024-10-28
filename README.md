@@ -2,7 +2,7 @@
 
 ###### Current Release 02032023
 
-## Notice 06/09/2024 - As of today, I discovered that the OpenweatherMap API has been updated to v3.0 and the v2.5 will be deprecated this month. This will probably break the script at that point. For the new v3.0 they will continue to let it be free, but they want you to enter a credit card in case you go over the alloted number of calls in the month. This is not ok with me and I will be looking to replace the API with something else. I just found out about this today and I will have an updated version along with other updates to APRSNotify as soon as I can.
+## Notice 10/28/2024 - Currently working on APRSNotify2. This work is a complete rrework of how the script works. Lots of new features coming. Should be out soon.
 
 APRSNotify is a python based bot script designed to send parsed APRS packet data to various Social Media or Communications networks.
 
