@@ -2,7 +2,7 @@
 
 ###### Current Release 02032023
 
-## Notice 10/28/2024 - Currently working on APRSNotify2. This work is a complete rrework of how the script works. Lots of new features coming. Should be out soon.
+## Notice 10/28/2024 - Currently working on APRSNotify2. This work is a complete rrework of how the script works. Lots of new features coming. Make sure to check out the Project Board for this Project. If there is a messaging service you want me to look at adding support for, open an issue and I can look at adding it, if it is possible. Should be out soon.
 
 APRSNotify is a python based bot script designed to send parsed APRS packet data to various Social Media or Communications networks.
 
