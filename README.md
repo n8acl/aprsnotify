@@ -1,30 +1,27 @@
-# APRSNotify
+# APRSNotify2
 
-###### Current Release 02032023
-
-## Notice 10/28/2024 - Currently working on APRSNotify2. This work is a complete rrework of how the script works. Lots of new features coming. Make sure to check out the Project Board for this Project. If there is a messaging service you want me to look at adding support for, open an issue and I can look at adding it, if it is possible. Should be out soon.
+###### Current Release 1.0.0
 
 APRSNotify is a python based bot script designed to send parsed APRS packet data to various Social Media or Communications networks.
 
 This software is for use by Amateur Radio Operators only.
 
-This bot was designed to be used by one person with multiple APRS Trackers to track packets for that one person. There is the ability to send to club chat servers, but again, each person will need to run their own copy of the script. However, a club hosted version is in the works.
+This bot was designed to be used by one person with multiple APRS Trackers to track packets for that one person. It is possible to send to multiple services as well. Send to as many places as you want.
+
+There are SEVERAL Updates that have been made to the software. Please make sure to read the Change Log below for all the changes.
 
 Please see [the Wiki](https://n8acl.github.io/aprsnotify) for more information and installation and configuration steps as well as running the script.
 
 ##### Working Examples:
-- Mastodon: [You will need to follow n8acl_aprs@botsin.space.](https://botsin.space/@n8acl_aprs)
-
-#### Important Note
-Due to the announcement that Twitter will be Discontinuing the free developer API on February 9, 2023, as of February 3, 2023 APRSNotify no longer supports Twitter. You will need to update to the current release if you are running APRSNotify to remove the Twitter support if you want to continue using it.
+- Mastodon: [You will need to follow n8acl_aprs@mastodon.radio.](https://mastodon.radio/@n8acl_aprs)
 
 ##### Currently Supported Networks/Functions
 
-| Function | Supported Services|
-|----------|------------------|
-|Position Packet Data<br>Weather Packet Data| Telegram, Mastodon, Discord, Mattermost, Slack|
-|Message Notification| Telegram, Discord, Pushover, Mattermost, Slack|
-|Send Packet Data<br>to Club Server| Telegram, Discord, Mattermost, Slack|
+To see the list of netowrks supported direcetly in APRSNotify, please see the Supported Services Page on [the Wiki](https://n8acl.github.io/aprsnotify/aupported_services/). This list will be growing.
+
+APRSNotify2 now uses the Apprise python library to send notifications to the different messageing services. Apprise supports over 100+ different services, so adding new services is a lot easier. These services above are supported within APRSNotify currently. While Apprise does support way more services, implementation has to be done in the app for each service. 
+
+However, there is a huge advantage to using Apprise now. If you are like me and use the Apprise libray and have the Apprise-API running on your network for other notifications, that can be leveraged to send notifications with APRSNotify. This allows users that use the Apprise-API access to all the services that Apprise supports. For more information about that, see [the Wiki](https://n8acl.github.io/aprsnotify).
 
 ---
 
@@ -32,38 +29,31 @@ Due to the announcement that Twitter will be Discontinuing the free developer AP
 - Pulls most recent packet data from [APRS.fi API](https://aprs.fi/page/api) for the following types of packets:
   - Position Data
   - Weather Station Data
-- Reverse Geocode with OpenStreetMaps API.
-- Get Weather Conditions from OpenWeatherMaps API for the location of the position packet
+  - Message Data
+- Reverse Geocode Packet loction with OpenStreetMaps API.
+- Get Weather Conditions from WeatherAPI.com for the location of the position packet
 - Find Maidenhead Grid Square of packet location.
 - Send Status to Social Media Networks (See above for supported Networks)
 - Get notification of an APRS message sent to your station (see above for supported Networks). If someone sends a message via APRS to one of the callsigns being tracked, the script will notify you and share the message with you.
-- Send packet data to a club Server channel. This allows club members to share packet data information with each other.
 
 ---
 
 ### Use Cases
 * Sending an APRS Position packet to Social Media for your followers to see.
-* Sending Weather data from APRS to Social Media.
+* Sending Weather data from APRS station to Social Media.
 * Sending APRS data to yourself to confirm that it is making it to the internet.
-* Sending your position information to a Telegram/Discord/Mattermost/Slack Channel that you have your non-ham radio family and friends on so they can track you when you are traveling by car for a long distance.
+* Sending your position information to a Channel that you have your non-ham radio family and friends on so they can track you when you are traveling by car for a long distance.
 * Participating in sending packet data to a club server/channel in addition to your own channels/servers
+* This could potentially be used to track up to 20 mobile stations during a race or parade and relay that information to others, like officials or other hams working in the race. (Note though that this program does not support the use of tactical callsigns. The callsigns must be Call-ssid to be tracked.)
 * Other uses that your imagination comes up with.
 
 ---
 
-## UPGRADE TO RELEASE 02032023
+## UPGRADE TO CURRENT RELEASE
 
-#### Normal Upgrade
+Due to the massive amount of changes done to the codebase, only the last version release of the APRSNotify1 software is supported for migration. If you have something older, you will need to install this as a clean install and then manually migrate your data over.
 
-To upgrade to the current version of the script, enter the folder where you have the APRSNotify scrpts and do a ```git pull -ff``` to get the newest updated scripts. Then please run the update.py ```python3 update.py``` script. It will update your database to the most current version.
-
-If you are installing the whole script for the first time (i.e. have never used APRSNotify before), please run an_util.py instead. Only run the upgrade script if you have used APRSNotify before and have previously upgraded to version 4.
-
-#### Upgrading a version older than Version 4 to current version
-
-Please note that any version prior to 4 has had to be depreciated and is no longer supported. With all the changes, it is difficult to support those older versions with the new version.
-
-The easiest way to upgrade a version of APRSNotify that is older than Version 4 is to make sure to backup the config.py file to another location and then deleting the old APRSnotify script folder. Then clone the repo to get the latest script files. This allows you to setup the script as basically a brand new setup, just follow the directions in the wiki for a new setup and using the an_util.py file. You can use your old config.py file as reference to copy and paste your keys and things in as needed.
+For Migration steps, see [the Wiki](https://n8acl.github.io/aprsnotify/migration/).
 
 ---
 
@@ -72,15 +62,17 @@ The Original Telegram Notify bot functionality was based off a gist by Github us
 
 Adding Grid Square to Status message was suggested by Alex, N7AGF.
 
-The Grid Square Function was developed by Walter Underwood, K6WRU and posted on ham.stackexchange.com. [Click Here](https://ham.stackexchange.com/questions/221/how-can-one-convert-from-lat-long-to-grid-square)
+The Grid Square Function was developed by Walter Underwood, K6WRU and posted on [ham.stackexchange.com](https://ham.stackexchange.com/questions/221/how-can-one-convert-from-lat-long-to-grid-square).
 
-The map image functionality for the Telegram Bot and suggestions to include or not include Weather data among other suggestions were contributed by Chanyeol Yoo, Ph.D., VK2FAED
+The map image functionality for the Telegram Bot and suggestions to include or not include Weather data among other suggestions were contributed by Chanyeol Yoo, Ph.D., VK2FAED (Though this had been deprecated in APRSNotify now, still wanted to give credit to include it originally.)
 
 APRS.FI API Limitations issues found and troubleshot by [Alex Bowman, KN4KNG](https://github.com/KN4KNG). 
 
-Installation of the Verison 4 scripts troubleshot by Diego, EA3ICN.
+Installation of the APRSNotify1 Verison 4 scripts troubleshot by Diego, EA3ICN.
 
-Pushover Notification API mechanics from [Micheal Clemens, DL6MHC](https://qrz.is/)
+Pushover Notification API mechanics from [Micheal Clemens, DL6MHC](https://qrz.is/)(Though this had been deprecated in APRSNotify now, still wanted to give credit for the idea to include it originally.)
+
+The [Apprise library](https://github.com/caronc/apprise) and [Apprise-API](https://github.com/caronc/apprise-api) were created and maintained by Chris Caron.
 
 APRS and the APRS System and associated copyright were developed by Bob Bruninga, WB4APR (SK) [http://www.aprs.org](http://www.aprs.org).
 
@@ -102,10 +94,37 @@ If you reach out to me and have an error, please include what error you are gett
 ## Change Log 
 Changes Prior to current year have been moved to the [ChangeLog](https://n8acl.github.io/aprsnotify/changelog/) on the wiki.
 
-* 02/03/2023
-  * Removed support for Twitter from the script. 
-  * Updated the Wiki to reflect current changes to the script.
+## Version 1.0.0 - Released 10/30/2024
+## Added
+- Now uses the Apprise notification library for service notifiction support. 
+  - This makes adding new services easier
+  - Also allows for multiple destinations for a service
+  - Can leverage the Apprise-Api to allow the user to completely configure and manage their own notification services.
+- Added support for sending to the following services (if using the Apprise service included with APRSNotify):
+  - DAPNET
+  - Matrix
+  - Signal
+- Added Database support for the following Database Managment Systems for configuration management
+  - Microsoft SQL Server
+  - MySQL
+  - PostgreSQL
+  - SQLite
+- Support for running in Docker
 
-* 01/24/2023 - Minor Update
-  * Put the flask package back in the requirements.txt file. Accidently deleted it and did not realize it. (Thanks to [Russ, KV4S](https://github.com/Russell-KV4S) for catching this one.)
+## Changed
+##### APRSNotify
+- Changed version numbering scheme back to Major.Minor.Build format (ex 2.0.0)
+- Changed how Mastodon connections are handled
+- Changes how Mattermost connections are handled
+- Always includes weather information in postion report now
+- Move from OpenWeatherMap to WeatherAPI.com for weather information
+
+##### APRSNotify Utility
+- Complete rework of the HTML Templates and Backend utility functions.
+
+
+## Removed
+- Removed option to exclude weather information from postion report
+- Removed Support of OpenWeatherMap for Weather Data
+- Removed support of sending map image with Telegram messages
 

@@ -1,0 +1,10 @@
+{
+  "database": {
+    "rdbms_type": "",
+    "credentials": {
+      "username": "",
+      "password": "",
+      "host": ""
+    }
+  }
+}

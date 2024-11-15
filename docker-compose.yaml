@@ -1,0 +1,18 @@
+services:
+  aprsnotify:
+    build: .
+    container_name: aprsnotify
+    volumes:
+      - <path/to>/aprsnotify/config.json:/app/config.json
+    restart: unless-stopped
+
+  an_util:
+    build:
+      context: ./
+      dockerfile: ./an_util/Dockerfile
+    container_name: an_util
+    volumes:
+      - <path/to>/aprsnotify/config.json:/app/config.json
+    ports:
+      - 5001:5001
+    restart: unless-stopped

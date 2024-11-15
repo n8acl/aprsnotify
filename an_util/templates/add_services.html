@@ -1,0 +1,23 @@
+<html>
+    <head>
+        <title>
+            {{ page_title }}
+        </title>
+    </head>
+    <body>
+        <h1>{{ page_title }}</h1>
+        <b>For help please see the APRSnotify Wiki: <br>
+        <a href="{{ wiki_link }}" target="top">{{ wiki_link }}</a></b> <br><br>
+        <a href="../">Return to Main Menu</a> <br><br>
+
+        <h2>Add New Service</h2>
+
+        <form action="{{url_for('add_new_services') }}" method="POST">
+            {% for row in supportedservices %}
+                <input type="submit" name="service_name" value="{{ row[0] }}">
+            {% endfor %}
+
+        </form>
+
+    </body>
+</html>

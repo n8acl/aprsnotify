@@ -1,0 +1,85 @@
+<html>
+    <head>
+        <title>
+            {{ page_title }}
+        </title>
+    </head>
+    <body>
+        <h1>{{ page_title }}</h1>
+        <b>For help please see the APRSnotify Wiki: <br>
+        <a href="{{ wiki_link }}" target="top">{{ wiki_link }}</a></b> <br><br>
+        <a href="../">Return to Main Menu</a> <br><br>
+
+        <h2>Current Configured Services</h2>
+
+        {% for list_row in services_list %}
+
+
+            <table border=1>
+                <tr>
+                    <td colspan="6"><b>{{list_row[0]}}</b></td>
+                </tr>
+                
+                <tr>
+                    <!-- <th>Service Name</th> -->
+                    <th>Friendly Name</th>
+                    <th>Active</th>
+                    <!-- <th>Service Url</th> -->
+                    <th>Send Position Data</th>
+                    <th>Send Weather Data</th>
+                    <th>Send Message Data</th>
+                    <th>Update</th>
+                </tr>
+                {% for row in service_data %}
+                {% if row[0] == list_row[0] %}
+                <form action="{{url_for('update_services') }}" method="POST">
+                <input type = "hidden" name="app" value="{{list_row[0]}}">
+                <input type = "hidden" name="friendlyname" value="{{ row[1] }}">                
+                <tr>
+                    <!-- <td>
+                        {{ row[0] }}
+                    </td> -->
+                    <td>
+                        {{ row[1] }}
+                    </td>
+                    <td>
+                        {{ row[2] }}
+                    </td>
+                    <!-- <td>
+                        {{ row[3] }}
+                    </td> -->
+                    <td>
+                        {{ row[4] }}
+                    </td>
+                    <td>
+                        {{ row[5] }}
+                    </td>
+                    <td>
+                        {{ row[6] }}
+                    </td>
+                    <td>
+                        <input type="submit" name="update" value="Update {{ row[1] }}">
+                    </td>
+                </tr>
+                </form>
+                {% endif %}
+                {% endfor %}
+
+
+            </table>
+            <br><br>
+        {% endfor %}
+
+            
+<!-- 
+            <form action="{{url_for('update_callsign_lists') }}" method="POST">
+                <input type="radio" name="function" value = "1" checked>Add to <input type="radio" name="function" value = "0">Delete from the<br>
+                <input type="radio" name="listtype" value = "POS" checked>POS <input type="radio" name="listtype" value = "MSG">MSG <input type="radio" name="listtype" value = "WX">WX 
+                callsign list <br>
+                the callsign(s) below (seperate multiple callsigns with commas):<br>
+                <input type="text" name="callsignlist" size="50">
+                <br>
+                <input type="submit" name="submit" value="Update Callsign List">
+            </form> -->
+    </body>
+</html>

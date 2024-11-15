@@ -1,7 +1,10 @@
-python-telegram-bot
 geopy
 requests
-aprslib
-mastodon.py
-discord_webhook
-matterhook
+flask
+sqlalchemy
+sqlalchemy-utils
+pymssql
+pymysql
+psycopg2-binary
+apprise
+pytz

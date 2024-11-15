@@ -1,22 +1,12 @@
-###### Current Release 02032023
+###### Current Release 1.0.0
 
-Welcome to APRSNotify - a python based bot script designed to send parsed APRS packet data to Various Social Networks. This bot was designed to be used by one person with multiple APRS Trackers to track packets for that one person.
+Welcome to APRSNotify2 - a python based bot script designed to send parsed APRS packet data to Various Social Networks. This bot was designed to be used by one person with multiple APRS Trackers to track packets for that one person.
 
 This Wiki is designed as a user guide for the end users of the software.
 
 This software is for use by Amateur Radio Operators Only
 
-### Important Note
-
-As of February 2, 2023, Twitter has announced they are no longer going to provide the free developer API starting February 9, 2023. APRSNotify will no longer support Twitter as a service due to this Starting with the 02032023 release.
-
-### Supported Social Networks
-
-| Function | Supported Services|
-|----------|------------------|
-|Position Packet Data<br>Weather Packet Data| Telegram, Mastodon, Discord, Mattermost, Slack|
-|Message Notification| Telegram, Discord, Pushover, Mattermost, Slack|
-|Send Packet Data<br>to Club Server| Telegram, Discord, Mattermost, Slack|
+Please do not use this to send postions of Fixed Stations or Digipeaters. This is designed to be used to track mobile stations.
 
 ### Important Information
 
@@ -33,7 +23,7 @@ You have thusly been warned and it is now your responsibiliy to make sure you ar
 ### Contact Me
 If you have questions, please feel free to reach out to me. You can reach me in one of the following ways:
 
-- Discord: Ravendos#7364
+- Discord: Ravendos
 - Mastodon: @n8acl@mastodon.radio
 - E-mail: n8acl@qsl.net
 

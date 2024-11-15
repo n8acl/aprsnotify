@@ -1,0 +1,30 @@
+<html>
+    <head>
+        <title>
+            {{ page_title }}
+        </title>
+    </head>
+    <body>
+        <h1>{{ page_title }}</h1>
+        <b>For help please see the APRSnotify Wiki: <br>
+        <a href="{{ wiki_link }}" target="top">{{ wiki_link }}</a></b> <br><br>
+        {{ header }}<br>
+        {{ msg }} 
+        <br><br>
+        {% if page == "serviceupdate"%}
+        <a href="../list_services">Return to Service Update Page</a>
+        {% elif page == "serviceadd" %}
+        <a href="../add_services">Return to Add Services Page</a>
+        {% elif page == "configuration" %}
+        <a href="../configuration">Return to Main Program Configuration Page</a>
+        {% elif page == "callsignlists" %}
+        <a href="../callsignlists">Return to Callsign Lists Configuration Page</a>
+        {% elif page == "appriseapiupdate" %}
+        <a href="../apprise_api">Return to Apprise-API Configuration Page</a>
+        {% endif %}
+        <br>
+        <a href="../">Return to Main Menu</a>        
+
+      
+   </body>
+</html>

@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <title>
+            {{ page_title }}
+        </title>
+    </head>
+    <body>
+        <h1>{{ page_title }}</h1>
+        <b>For help please see the APRSnotify Wiki: <br>
+        <a href="{{ wiki_link }}" target="top">{{ wiki_link }}</a></b> <br><br>
+        <a href="../">Return to Main Menu</a> <br><br>
+
+        <h2>Apprise-API Configuration Settings</h2>
+
+        <form action="{{url_for('update_appriseapi') }}" method="POST">
+        <table border = 0>
+            <tr>
+                <td>Apprise-API URL:</td>
+                <td><input type="text" name="apprise_url" value="{{ apprise_apiurl }}" size="50"></td>
+            </tr>
+            <tr>
+                <td>Apprise-API Config Key:</td>
+                <td><input type="text" name="apprise_apikey" value="{{ apprise_apikey }}"></td>
+            </tr>  
+            <tr>
+                <td>Apprise-API Position Tags (seperated by commas):</td>
+                <td><input type="text" name="apprise_pos_tags" value="{{ apprise_api_pos_tags }}" size="50"></td>
+            </tr> 
+            <tr>
+                <td>Apprise-API Message Tags (seperated by commas):</td>
+                <td><input type="text" name="apprise_msg_tags" value="{{ apprise_api_msg_tags }}" size="50"></td>
+            </tr>   
+            <tr>
+                <td>Apprise-API Weather Tags (seperated by commas):</td>
+                <td><input type="text" name="apprise_wx_tags" value="{{ apprise_api_wx_tags }}" size="50"></td>
+            </tr>    
+            <tr>
+                <td colspan=2><input type="Submit" name="submit" value="Submit"></td>
+            </tr>  
+        </form>
+        </table>
+    </body>
+</html> 

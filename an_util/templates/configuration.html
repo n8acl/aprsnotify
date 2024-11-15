@@ -7,21 +7,20 @@
     <body>
         <h1>{{ page_title }}</h1>
         <b>For help please see the APRSnotify Wiki: <br>
-        <a href="{{ wiki_url }}" target="top">{{ wiki_url }}</a></b> <br><br>
+        <a href="{{ wiki_link }}" target="top">{{ wiki_link }}</a></b> <br><br>
         <a href="../">Return to Main Menu</a> <br><br>
 
        <h2>Miscellanious Configuration Settings</h2>
             <form action="{{url_for('update_configs') }}" method="POST">
         <table border=1>
 
-            {% for row in configs %}
             <tr>
                 <td>
                     <table border = 0>
                         <tr>
                             <td>Units to Use:</td>
                             <td>
-                                {% if row[0] == 1: %}
+                                {% if units_to_use == 1: %}
                                     <input type="radio" name="units_to_use" value = "1" checked>Metric <input type="radio" name="units_to_use" value = "2" >Imperial
                                 {% else %}
                                     <input type="radio" name="units_to_use" value = "1">Metric <input type="radio" name="units_to_use" value = "2" checked>Imperial
@@ -35,13 +34,9 @@
                 <td>
                     <table border=0>
                         <tr>
-                            <td>Include Weather in Status:</td>
+                            <td>Time to wait for Checks (in seconds) (min: 600):</td>
                             <td>
-                                {% if row[1] == 1: %}
-                                    <input type="radio" name="include_wx" value = "1" checked>Yes <input type="radio" name="include_wx" value = "0" >No
-                                {% else %}
-                                    <input type="radio" name="include_wx" value = "1">Yes <input type="radio" name="include_wx" value = "0" checked>No
-                                {% endif %}
+                                    <input type="text" name="delay_time" value="{{delay_time}}">
                             </td>
                         </tr>
                     </table>
@@ -51,13 +46,17 @@
                 <td>
                     <table border=0>
                         <tr>
-                            <td>Send Position Data:</td>
+                            <td>Your Timezone:</td>
                             <td>
-                                {% if row[2] == 1: %}
-                                    <input type="radio" name="send_position_data" value = "1" checked>Yes <input type="radio" name="send_position_data" value = "0" >No
-                                {% else %}
-                                    <input type="radio" name="send_position_data" value = "1">Yes <input type="radio" name="send_position_data" value = "0" checked>No
+                                <select name="timezone">
+                                {% for x in range(0,timezones|length) %}
+                                {% if timezones[x] == user_timezone %}
+                                    <option value="{{timezones[x]}}" selected>{{timezones[x]}}</option>
+                                {% else %}   
+                                    <option value="{{timezones[x]}}">{{timezones[x]}}</option>
                                 {% endif %}
+                                {% endfor %}
+                                </select>
                             </td>
                         </tr>
                     </table>
@@ -67,13 +66,33 @@
                 <td>
                     <table border=0>
                         <tr>
-                            <td>Send Weather Data:</td>
+                            <td>Use Apprise-API:</td>
                             <td>
-                                {% if row[3] == 1: %}
-                                    <input type="radio" name="send_weather_data" value = "1" checked>Yes <input type="radio" name="send_weather_data" value = "0" >No
-                                {% else %}
-                                    <input type="radio" name="send_weather_data" value = "1">Yes <input type="radio" name="send_weather_data" value = "0" checked>No
-                                {% endif %}
+                                    <input type="checkbox" name="use_apprise_api" {% if use_apprise_api %} checked {% endif %}>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border=0>
+                        <tr>
+                            <td>APRS.Fi API Key:</td>
+                            <td>
+                                    <input type="text" name="aprsfi_apikey" value="{{aprsfi_apikey}}" size="50">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border=0>
+                        <tr>
+                            <td>WeatherAPI API Key:</td>
+                            <td>
+                                    <input type="text" name="wx_apikey" value="{{wx_apikey}}" size="50">
                             </td>
                         </tr>
                     </table>
@@ -87,8 +106,6 @@
                 </td>
                 </form>
             </tr>
-            {% endfor %}
-
         </table>
 
     </body>

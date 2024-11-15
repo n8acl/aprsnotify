@@ -33,11 +33,17 @@ markdown_extensions:
 nav:
   - Welcome!: index.md
   - About APRSNotify: about.md
+  - Project Status Board: https://github.com/users/n8acl/projects/3/views/1
+  - Supported Services: supported_services.md
   - Getting Started: 
-    - Installation/Setup: Installation.md
-    - Obtaining API Keys: obtaining_api_keys.md
-    - Configuration Utility Guide: configuration_guide.md
-    - Configuration for Club Servers (for Server Admins): club_server_admin_guide.md
-    - Running the Script: running_the_script.md
-  - Change Log (changes prior to 2022): changelog.md
+    - Installation/Setup:
+        - Getting Started: getting_started.md
+        - Migrating: migration.md
+        - Manual Installation: install.md
+        - Docker Installation (recommended): docker.md
+    - Configuration:
+        - Configuration Utility Guide: configuration_guide.md
+  - Changes:
+    - Revision Explaination: revision_explaination.md
+    - Change Log (changes prior to 2024): changelog.md
 

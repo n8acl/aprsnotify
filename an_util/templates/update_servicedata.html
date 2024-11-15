@@ -1,0 +1,408 @@
+<html>
+    <head>
+        <title>
+            {{ page_title }}
+        </title>
+    </head>
+    <body>
+        <h1>{{ page_title }}</h1>
+        <b>For help please see the APRSnotify Wiki: <br>
+        <a href="{{ wiki_link }}" target="top">{{ wiki_link }}</a></b> <br><br>
+        <a href="../">Return to Main Menu</a> <br>
+        <a href="../list_services">Return to Current Services List</a>  
+        <br><br>
+
+        <h2>Update {{service_name}} Data</h2>
+
+        {% if service_name == 'Discord' %}
+
+            {% for row in service_data %}
+                <form action="{{url_for('update_service_data') }}" method="POST">
+                    <input type = "hidden" name="app" value="{{row[0]}}">
+                    <input type = "hidden" name="friendlyname" value="{{row[1]}}">
+                <table border=0>
+                    <tr>
+                        <td>Friendly Name:</td>
+                        <td><input type="text" name="friendly_name" value="{{row[1]}}"></td>
+                    </tr>
+                    <tr>
+                        <td>Active:</td>
+                        <td><input type="checkbox" name="active" {% if row[2] %} checked {% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Webhook URL:</td>
+                        <td><input type="text" name="service_url" value="{{row[3]}}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Send Postion Data:</td>
+                        <td><input type="checkbox" name="send_position_data" {% if row[4] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Weather Data:</td>
+                        <td><input type="checkbox" name="send_weather_data" {% if row[5] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Message Data:</td>
+                        <td><input type="checkbox" name="send_message_data" {% if row[6] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td colspan=2><input type="Submit" name="submit" value="Submit"></td>
+                    </tr>
+                </table>
+                </form>
+            {% endfor %}
+        {% endif %}
+
+        {% if service_name == 'Mastodon' %}
+
+            {% for row in service_data %}
+                <form action="{{url_for('update_service_data') }}" method="POST">
+                    <input type = "hidden" name="app" value="{{row[0]}}">
+                    <input type = "hidden" name="friendlyname" value="{{row[1]}}">
+                <table border=0>
+                    <tr>
+                        <td>Friendly Name:</td>
+                        <td><input type="text" name="friendly_name" value="{{row[1]}}"></td>
+                    </tr>
+                    <tr>
+                        <td>Active:</td>
+                        <td><input type="checkbox" name="active" {% if row[2] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Access Token:</td>
+                        <td><input type="text" name="access_token" value="{{ row[3][row[3].find('/')+2:row[3].find('@')] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Host Name:</td>
+                        <td><input type="text" name="hostname" value="{{row[3][row[3].find('@')+1:]}}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Send Postion Data:</td>
+                        <td><input type="checkbox" name="send_position_data" {% if row[4] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Weather Data:</td>
+                        <td><input type="checkbox" name="send_weather_data" {% if row[5] %}checked{% endif %}></td>
+                    </tr>
+
+                    <tr>
+                        <td colspan=2><input type="Submit" name="submit" value="Submit"></td>
+                    </tr>
+                </table>
+                </form>
+            {% endfor %}
+        {% endif %}
+
+        {% if service_name == 'Telegram' %}
+
+            {% for row in service_data %}
+                <form action="{{url_for('update_service_data') }}" method="POST">
+                    <input type = "hidden" name="app" value="{{row[0]}}">
+                    <input type = "hidden" name="friendlyname" value="{{row[1]}}">
+                <table border=0>
+                    <tr>
+                        <td>Friendly Name:</td>
+                        <td><input type="text" name="friendly_name" value="{{row[1]}}"></td>
+                    </tr>
+                    <tr>
+                        <td>Active:</td>
+                        <td><input type="checkbox" name="active" {% if row[2] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Bot Token:</td>
+                        <td><input type="text" name="bot_token" value="{{ row[3][row[3].find('/')+2:row[3].find('/',row[3].find('/')+2)] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Chat ID:</td>
+                        <td><input type="text" name="chatid" value="{{ row[3][row[3].find('/',row[3].find('/')+2)+1:] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Send Postion Data:</td>
+                        <td><input type="checkbox" name="send_position_data" {% if row[4] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Weather Data:</td>
+                        <td><input type="checkbox" name="send_weather_data" {% if row[5] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Message Data:</td>
+                        <td><input type="checkbox" name="send_message_data" {% if row[6] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td colspan=2><input type="Submit" name="submit" value="Submit"></td>
+                    </tr>
+                </table>
+                </form>
+            {% endfor %}
+        {% endif %}
+
+        {% if service_name == 'Mattermost' %}
+
+            {% for row in service_data %}
+                <form action="{{url_for('update_service_data') }}" method="POST">
+                    <input type = "hidden" name="app" value="{{row[0]}}">
+                    <input type = "hidden" name="friendlyname" value="{{row[1]}}">
+                <table border=0>
+                    <tr>
+                        <td>Friendly Name:</td>
+                        <td><input type="text" name="friendly_name" value="{{row[1]}}"></td>
+                    </tr>
+                    <tr>
+                        <td>Active:</td>
+                        <td><input type="checkbox" name="active" {% if row[2] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Host Name (FQDN or IP Address and Port ex. FQDN:Port):</td>
+                        <td><input type="text" name="hostname" value="{{ row[3][row[3].find('/')+2:row[3].find('/',row[3].find('/')+2)] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Webhook Token:</td>
+                        <td><input type="text" name="webhook_token" value="{{ row[3][row[3].find('/',row[3].find('/')+2)+1:] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Send Postion Data:</td>
+                        <td><input type="checkbox" name="send_position_data" {% if row[4] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Weather Data:</td>
+                        <td><input type="checkbox" name="send_weather_data" {% if row[5] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Message Data:</td>
+                        <td><input type="checkbox" name="send_message_data" {% if row[6] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td colspan=2><input type="Submit" name="submit" value="Submit"></td>
+                    </tr>
+                </table>
+                </form>
+            {% endfor %}
+        {% endif %}
+
+        {% if service_name == 'Slack' %}
+
+            {% for row in service_data %}
+                <form action="{{url_for('update_service_data') }}" method="POST">
+                    <input type = "hidden" name="app" value="{{row[0]}}">
+                    <input type = "hidden" name="friendlyname" value="{{row[1]}}">
+                <table border=0>
+                    <tr>
+                        <td>Friendly Name:</td>
+                        <td><input type="text" name="friendly_name" value="{{row[1]}}"></td>
+                    </tr>
+                    <tr>
+                        <td>Active:</td>
+                        <td><input type="checkbox" name="active" {% if row[2] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Webhook URL:</td>
+                        <td><input type="text" name="service_url" value="{{row[3]}}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Send Postion Data:</td>
+                        <td><input type="checkbox" name="send_position_data" {% if row[4] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Weather Data:</td>
+                        <td><input type="checkbox" name="send_weather_data" {% if row[5] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Message Data:</td>
+                        <td><input type="checkbox" name="send_message_data" {% if row[6] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td colspan=2><input type="Submit" name="submit" value="Submit"></td>
+                    </tr>
+                </table>
+                </form>
+            {% endfor %}
+        {% endif %}
+
+        {% if service_name == 'Pushover' %}
+            * NOTE: This should only be used for message Notifications. This is a charged for service and you don't want a huge bill.<br><br>
+            {% for row in service_data %}
+                <form action="{{url_for('update_service_data') }}" method="POST">
+                    <input type = "hidden" name="app" value="{{row[0]}}">
+                    <input type = "hidden" name="friendlyname" value="{{row[1]}}">
+                <table border=0>
+                    <tr>
+                        <td>Friendly Name:</td>
+                        <td><input type="text" name="friendly_name" value="{{row[1]}}"></td>
+                    </tr>
+                    <tr>
+                        <td>Active:</td>
+                        <td><input type="checkbox" name="active" {% if row[2] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>User Key:</td>
+                        <td><input type="text" name="userkey" value="{{ row[3][row[3].find('/')+2:row[3].find('@')] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>API Token:</td>
+                        <td><input type="text" name="api_token" value="{{row[3][row[3].find('@')+1:]}}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Send Message Data:</td>
+                        <td><input type="checkbox" name="send_message_data" {% if row[6] %}checked{% endif %}></td>
+                    </tr>
+
+                    <tr>
+                        <td colspan=2><input type="Submit" name="submit" value="Submit"></td>
+                    </tr>
+                </table>
+                </form>
+            {% endfor %}
+        {% endif %}
+
+        {% if service_name == 'Matrix' %}
+
+            {% for row in service_data %}
+                <form action="{{url_for('update_service_data') }}" method="POST">
+                    <input type = "hidden" name="app" value="{{row[0]}}">
+                    <input type = "hidden" name="friendlyname" value="{{row[1]}}">
+                <table border=0>
+                    <tr>
+                        <td>Friendly Name:</td>
+                        <td><input type="text" name="friendly_name" value="{{row[1]}}"></td>
+                    </tr>
+                    <tr>
+                        <td>Active:</td>
+                        <td><input type="checkbox" name="active" {% if row[2] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Username:</td>
+                        <td><input type="text" name="username" value="{{ row[3][row[3].find('/')+2:row[3].find(':',row[3].find(':')+1)] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Password:</td>
+                        <td><input type="text" name="password" value="{{ row[3][row[3].find(':',row[3].find(':')+1)+1:row[3].find('@')] }}" size="150"></td>
+                    </tr>                    
+                    <tr>
+                        <td>Host Name:</td>
+                        <td><input type="text" name="hostname" value="{{ row[3][row[3].find('@')+1:row[3].find('/',row[3].find('/')+2)] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Room ID:</td>
+                        <td><input type="text" name="room_id" value="{{ row[3][row[3].find('/',row[3].find('/')+2)+1:] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Send Postion Data:</td>
+                        <td><input type="checkbox" name="send_position_data" {% if row[4] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Weather Data:</td>
+                        <td><input type="checkbox" name="send_weather_data" {% if row[5] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Message Data:</td>
+                        <td><input type="checkbox" name="send_message_data" {% if row[6] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td colspan=2><input type="Submit" name="submit" value="Submit"></td>
+                    </tr>
+                </table>
+                </form>
+            {% endfor %}
+        {% endif %}
+
+        {% if service_name == 'Dapnet' %}
+
+            {% for row in service_data %}
+                <form action="{{url_for('update_service_data') }}" method="POST">
+                    <input type = "hidden" name="app" value="{{row[0]}}">
+                    <input type = "hidden" name="friendlyname" value="{{row[1]}}">
+                <table border=0>
+                    <tr>
+                        <td>Friendly Name:</td>
+                        <td><input type="text" name="friendly_name" value="{{row[1]}}"></td>
+                    </tr>
+                    <tr>
+                        <td>Active:</td>
+                        <td><input type="checkbox" name="active" {% if row[2] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Username:</td>
+                        <td><input type="text" name="username" value="{{ row[3][row[3].find('/')+2:row[3].find(':',row[3].find(':')+1)] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Password:</td>
+                        <td><input type="text" name="password" value="{{ row[3][row[3].find(':',row[3].find(':')+1)+1:row[3].find('@')] }}" size="150"></td>
+                    </tr>                    
+                    <tr>
+                        <td>Your Callsign:</td>
+                        <td><input type="text" name="callsign" value="{{ row[3][row[3].find('@')+1:] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Send Postion Data:</td>
+                        <td><input type="checkbox" name="send_position_data" {% if row[4] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Weather Data:</td>
+                        <td><input type="checkbox" name="send_weather_data" {% if row[5] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Message Data:</td>
+                        <td><input type="checkbox" name="send_message_data" {% if row[6] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td colspan=2><input type="Submit" name="submit" value="Submit"></td>
+                    </tr>
+                </table>
+                </form>
+            {% endfor %}
+        {% endif %}
+
+        {% if service_name == 'Signal' %}
+
+            {% for row in service_data %}
+                <form action="{{url_for('update_service_data') }}" method="POST">
+                    <input type = "hidden" name="app" value="{{row[0]}}">
+                    <input type = "hidden" name="friendlyname" value="{{row[1]}}">
+                <table border=0>
+                    <tr>
+                        <td>Friendly Name:</td>
+                        <td><input type="text" name="friendly_name" value="{{row[1]}}"></td>
+                    </tr>
+                    <tr>
+                        <td>Active:</td>
+                        <td><input type="checkbox" name="active" {% if row[2] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Username:</td>
+                        <td><input type="text" name="username" value="{{ row[3][row[3].find('/')+2:row[3].find(':',row[3].find(':')+1)] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Password:</td>
+                        <td><input type="text" name="password" value="{{ row[3][row[3].find(':',row[3].find(':')+1)+1:row[3].find('@')] }}" size="150"></td>
+                    </tr> 
+                    <tr>
+                        <td>Host Name (FQDN or IP Address and Port ex. FQDN:Port):</td>
+                        <td><input type="text" name="hostname" value="{{ row[3][row[3].find('@')+1:row[3].find('/',row[3].find('/')+2)] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>From Phone Number:</td>
+                        <td><input type="text" name="fromphoneno" value="{{ row[3][row[3].find('/',row[3].find('/')+2)+1:row[3].find('/',row[3].find('/',row[3].find('/')+2)+1)] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Target Chat ID:</td>
+                        <td><input type="text" name="target_chatid" value="{{ row[3][row[3].find('/',row[3].find('/',row[3].find('/')+2)+1)+1:] }}" size="150"></td>
+                    </tr>
+                    <tr>
+                        <td>Send Postion Data:</td>
+                        <td><input type="checkbox" name="send_position_data" {% if row[4] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Weather Data:</td>
+                        <td><input type="checkbox" name="send_weather_data" {% if row[5] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td>Send Message Data:</td>
+                        <td><input type="checkbox" name="send_message_data" {% if row[6] %}checked{% endif %}></td>
+                    </tr>
+                    <tr>
+                        <td colspan=2><input type="Submit" name="submit" value="Submit"></td>
+                    </tr>
+                </table>
+                </form>
+            {% endfor %}
+        {% endif %}

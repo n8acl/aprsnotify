@@ -1,3 +1,10 @@
+* 02/03/2023
+  * Removed support for Twitter from the script. 
+  * Updated the Wiki to reflect current changes to the script.
+
+* 01/24/2023 - Minor Update
+  * Put the flask package back in the requirements.txt file. Accidently deleted it and did not realize it. (Thanks to [Russ, KV4S](https://github.com/Russell-KV4S) for catching this one.)
+
 * 05/24/2022 - Minor updates - *** THIS DOES NOT REQUIRE RUNNING THE UPDATE SCRIPT ***
     * Moved Wiki to Github pages using MKDocs - [Link](https://n8acl.github.io/aprsnotify)
     * Minor Change to how Telegram sends messages

@@ -7,7 +7,7 @@
     <body>
         <h1>{{ page_title }}</h1>
         <b>For help please see the APRSnotify Wiki: <br>
-        <a href="{{ wiki_url }}" target="top">{{ wiki_url }}</a></b> <br><br>
+        <a href="{{ wiki_link }}" target="top">{{ wiki_link }}</a></b> <br><br>
 
         -------------------  Main Menu -------------------<br>
         Please Click on one of the following options: <br><br>
@@ -15,10 +15,13 @@
         <ul>
             <li><a href="../configuration">Main Program Configuration Settings</a></li>
             <li><a href="../callsignlists">Callsign Tracking List Configuration</a></li>
-            <li><a href="../smkeys">Configure Social Media Services</a></li>
-            <li><a href="../msgsettings">Configure Message Notification Services</a></li>
-            <li><a href="../clubsettings">Configure Club Server Services</a></li>
-            <li><a href="../otherapikeys">Configure Other Various API Keys</a></li>
+            {% if use_apprise_api %}
+            <li><a href="../apprise_api">Configure Apprise-API</a></li>
+            {% else %}
+            <li><a href="../add_services">Add New Service</a></li></li>
+            <li><a href="../list_services">Update Current Services</a></li>
+            {% endif %}
+
         </ul>
 
     </body>

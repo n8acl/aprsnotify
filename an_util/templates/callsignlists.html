@@ -1,0 +1,67 @@
+<html>
+    <head>
+        <title>
+            {{ page_title }}
+        </title>
+    </head>
+    <body>
+        <h1>{{ page_title }}</h1>
+        <b>For help please see the APRSnotify Wiki: <br>
+        <a href="{{ wiki_link }}" target="top">{{ wiki_link }}</a></b> <br><br>
+        <a href="../">Return to Main Menu</a> <br><br>
+
+        <h2>Configure Callsign Tracking Lists</h2>
+            POS = Position Tracking<br>
+            MSG = Message Tracking<br>
+            WX = Weather Station Tracking<br><br>
+            * Note: Max of 20 Callsigns to track<br>
+            -----------------------------<br><br>
+
+        Current Tracked Callsigns ({{row_count}}):
+            <table border =1>
+                <tr>
+                    <th>Callsign</th>
+                    <th>Type</th>
+                </tr>
+            {% for row in callsignlist %}
+                <tr>
+                    <td>{{row[0]}}</td>
+                    <td>{{row[1]}}</td>
+                </tr>            
+            {% endfor %} 
+
+            </table>
+
+            <br>
+
+            <br>
+            <form action="{{url_for('update_callsign_lists') }}" method="POST">
+                <input type="hidden" name="rowcount" value="{{row_count}}">
+                <b>Add Callsign:</b><br>
+                Callsign: <input type="text" name="callsign">
+                <select name="addtype">
+                    <option value="POS">POS</option>
+                    <option value="MSG">MSG</option>
+                    <option value="WX">WX</option>
+                </select>
+                <br>
+                <input type="submit" name="submit" value="Add">
+            </form>
+
+            <form action="{{url_for('update_callsign_lists') }}" method="POST">
+                <b>Delete Callsign:</b><br>
+                Callsign: <select name="del_call">
+                    {% for row in del_callsign_list %}
+                    <option value="{{row[0]}}">{{row[0]}}</option>
+                    {% endfor %}
+                </select>
+                <select name="deltype">
+                    <option value="POS">POS</option>
+                    <option value="MSG">MSG</option>
+                    <option value="WX">WX</option>
+                </select>
+                <br>
+                <input type="submit" name="submit" value="Delete">
+            </form>
+    </body>
+</html>

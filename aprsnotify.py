@@ -1,125 +1,120 @@
+#!/usr/bin/env python3
 #################################################################################
 
 # APRSNotify
 # Developed by: Jeff Lehman, N8ACL
-# Current Version: 02032023
+# Current Version: 2.0
 # https://github.com/n8acl/aprsnotify
 
 # Questions? Comments? Suggestions? Contact me one of the following ways:
 # E-mail: n8acl@qsl.net
-# Discord: Ravendos#7364
+# Discord: Ravendos
 # Mastodon: @n8acl@mastodon.radio
 # Website: https://www.qsl.net/n8acl
 
 ###################   DO NOT CHANGE BELOW   #########################
 
-# Import our Libraries
+
+######################################################################################################################
+# Import Python Libraries
 
 import time
+from time import sleep
 import os
 from os import system
+import requests
 import datetime
-import sqlite3
+from datetime import datetime
+import pytz
 import sys
 import json
 import http.client, urllib
-from sqlite3 import Error
+import sqlalchemy
+from sqlalchemy import text as sqltext, select, MetaData, Table
+from geopy.geocoders import Nominatim
+import apprise
+
+# Import our Custom Libraries
+import src.db_functions as dbf
+import src.db_conn as dbc
+
+#############################
+# set database connection
 
 try:
-    import requests
-except ImportError:
-    exit('This script requires the requests module\nInstall with: pip3 install requests')
-try:
-    import telegram
-except ImportError:
-    exit('This script requires the python-telegram-bot module\nInstall with: pip3 install python-telegram-bot')
-try:
-    from geopy.geocoders import Nominatim
-except ImportError:
-    exit('This script requires the geopy module\nInstall with: pip3 install geopy')
-try:
-    from mastodon import Mastodon
-except ImportError:
-    exit('This script requires the mastodon.py module\nInstall with: pip3 install mastodon.py')
-try:
-    from discord_webhook import DiscordWebhook, DiscordEmbed
-except ImportError:
-    exit('This script requires the discord_webhook module\nInstall with: pip3 install discord_webhook')
-try:
-    from matterhook import Webhook
-except ImportError:
-    exit('This script requires the matterhook module\nInstall with: pip3 install matterhook')
+    db_engine = dbc.db_connection()
+    print("Database Connection established")
+except Exception as e:
+    print("Database Connection could not be established.", e)
+
+metadata = sqlalchemy.MetaData()
+metadata.reflect(bind=db_engine)
+
+config = metadata.tables['config']
+apis = metadata.tables['apis']
+services = metadata.tables['services']
+callsignlist = metadata.tables['callsignlist']
 
 ######################################################################################################################
-# Define Variables and static objects
+## Define Static Variables and static objects
 
 degree_sign= u'\N{DEGREE SIGN}'
-fixed_station = 0
-aprsfi_api_base_url = "https://api.aprs.fi/api/get"
-owm_api_base_url = "http://api.openweathermap.org/data/2.5/weather"
 geolocator = Nominatim(user_agent="aprsnotify")
-db_file = os.path.dirname(os.path.abspath(__file__)) + "/aprsnotify.db"
+apobj = apprise.Apprise() # Apprise Object
 linefeed = "\n"
 pos_callsign_list = []
 msg_callsign_list = []
 wx_callsign_list = []
-goodposdata = False
-goodmsgdata = False
-goodwxdata = False
-debug = False
+fixed_station = False
+server_timezone = "Etc/UTC"
+localFormat = "%Y-%m-%d %H:%M:%S"
+localFormat_time = "%H:%M:%S"
 
 ######################################################################################################################
-# Define Functions
-
-def create_connection(db_file):
-    # Creates connection to APRSNotify.db SQLlite3 Database
-    conn = None
-    try:
-        conn = sqlite3.connect(db_file)
-    except Error as e:
-        print(e)
-    return conn
-
-def exec_sql(conn,sql):
-    # Executes SQL for Updates, inserts and deletes
-    cur = conn.cursor()
-    cur.execute(sql)
-    conn.commit()
-
-def select_sql(conn,sql):
-    # Executes SQL for Selects
-    cur = conn.cursor()
-    cur.execute(sql)
-    return cur.fetchall()
+## Define Functions
 
 def get_api_data(url):
     # get JSON data from api's with just a URL
     return requests.get(url=url).json()
 
 def get_api_data_payload(url,payload):
-    # get JSON data from api's
+    # get JSON data from api's with payload
     try:
         responses = requests.get(url=url,params=payload).json()
     except ValueError as e:
         return 0
     return responses
 
-def get_curr_wx(lat, lon):
-    # Return Conditions and Temp for the packet location.
-    if units_to_use == 1:
-        units = 'metric'
-    else:
-        units = 'imperial'
+def get_curr_wx(lat,lon):
+    # Return Conditions and Temp for the WX
 
-    owm_payload = {
-        'lat': lat,
-        'lon': lon,
-        'units': units,
-        'appid': openweathermapkey
+    # Weather API URL
+    sql = sqlalchemy.select(apis.c.apiurl).where(apis.c.apiname=='wx_api')
+
+    result = dbf.select_sql(db_engine,sql)
+
+    for row in result:
+        wx_url = row[0]
+
+    # Weather API Key
+
+    sql = sqlalchemy.select(apis.c.apikey).where(apis.c.apiname=='wx_api')
+
+    result = dbf.select_sql(db_engine,sql)
+
+    for row in result:
+        wxkey = row[0]
+
+    wx_api_payload = {
+            'key': wxkey,
+            'q': str(lat) + "," + str(lon)
     }
-    
-    data = get_api_data_payload(owm_api_base_url,owm_payload)
-    return data['weather'][0]['main'], data['main']['temp'] # Conditions, temp
+
+    forecast = get_api_data_payload(wx_url,wx_api_payload)
+    conditions = forecast["current"]["condition"]["text"]
+    temp = forecast["current"]["temp_f"]
+
+    return conditions, temp
 
 def get_location(lat,lng):
     # Reverse geocode with openstreetmaps for location
@@ -157,271 +152,188 @@ def get_grid(dec_lat, dec_lon):
 
     return grid_lon_sq + grid_lat_sq + grid_lon_field + grid_lat_field + grid_lon_subsq + grid_lat_subsq
 
-def send_telegram(msg, msg_type, lat,lng, bot_token, chat_id):
-    # msg_types
-    # 1: Postion Data
-    # 2: Weather Data
-    # 3: APRS message
+def build_callsignlist(ltype):
 
-    # Sends the message text to Telegram. This is used for both status and message sending
-    bot = telegram.Bot(token=bot_token)
-    if msg_type in [1,2]:
-        bot.sendMessage(chat_id=chat_id, text=msg)
-    else:
-        bot.sendMessage(chat_id=chat_id, text=msg)
-    if (include_map_image_telegram == 1 and msg_type not in [2,3]): # Includes a map of the packet location in Telegram
-        bot.sendLocation(chat_id=chat_id, latitude=lat, longitude=lng, disable_notification=True)
+    callsign_list = []
 
-def send_mastodon(msg):
+    sql = sqlalchemy.select(callsignlist.c.callsign).where((callsignlist.c.listtype==ltype))
 
-    mastodon_api = Mastodon(mastodonkeys["client_id"], mastodonkeys["client_secret"], mastodonkeys["user_access_token"], api_base_url=mastodonkeys["api_base_url"])
-    mastodon_api.toot(micro_status)
+    result = dbf.select_sql(db_engine,sql)
 
-def send_discord(msg,wh_url, msg_type, station):
-    # webhook = DiscordWebhook(url=wh_url, content=msg)
-    # response = webhook.execute() 
+    for row in result:
+        callsign_list.append(row[0])
 
-    if msg_type == 1:
-        title = station + " Position Report"
-    elif msg_type == 2:
-        title = station + " Weather Report"
-    elif msg_type == 3:
-        title = "Message Notification"
+    return callsign_list
 
-    webhook = DiscordWebhook(url=wh_url)
+def get_last_timestamp(callsign,ltype):
 
-    embed = DiscordEmbed(title=title, description=msg)
-    webhook.add_embed(embed)
+    sql = sqlalchemy.select(callsignlist.c.last_timestamp).where((callsignlist.c.listtype==ltype) & (callsignlist.c.callsign==callsign))
 
-    response = webhook.execute() 
+    result = dbf.select_sql(db_engine,sql)
 
-def send_mattermost(msg,wh_url, api_key):
-    mm_bot = Webhook(mattermostwh["wh_url"], mattermostwh["apikey"])
-    mm_bot.send(msg)  
+    for row in result:
+        last_timestamp = row[0]
 
-def send_pushover(msg):
-    connn = http.client.HTTPSConnection("api.pushover.net:443")
-    connn.request("POST", "/1/messages.json",
-        urllib.parse.urlencode({
-        "token": pushover["pushover_token"],
-        "user": pushover["pushover_userkey"],
-        "message": msg,
-        }), { "Content-type": "application/x-www-form-urlencoded" })
-    connn.getresponse()
+    return last_timestamp
 
-def send_slack(msg,wh_url):
+def update_last_timestamp(callsign,ltype,last_timestamp):
+
+    sql = callsignlist.update().where((callsignlist.c.callsign==callsign) & (callsignlist.c.listtype==ltype)).values(last_timestamp=last_timestamp)
+
+    dbf.exec_sql(db_engine,sql)
+
+def convert_local_time(timevar):
+    timestamp_naive = datetime.fromtimestamp(timevar)
+    timestamp_moment = timestamp_naive.astimezone(pytz.utc)
+    return timestamp_moment.astimezone(pytz.timezone(user_timezone))
+
+def send_msg_api(tag, msg, title):
+
+    # get Apprise-api url
+
+    sql = sqlalchemy.select(apis.c.apikey, apis.c.apiurl).where(apis.c.apiname=='apprise_api')
+
+    result = dbf.select_sql(db_engine,sql)
+
+    for row in result:
+        apprise_api_url = row[1] + row[0]
+
+    # get Apprise-api tags to send to
+
+    sql = sqlalchemy.select(config.c.setting_value_text).where(config.c.setting_name=='apprise_api_'+tag.lower()+'_tags')
+
+    result = dbf.select_sql(db_engine,sql)
+
+    for row in result:
+        tags = row[0]
+    
+
+    payload = {
+    'tag': tags,
+    'title': title,
+    'body': msg
+    }
+
     response = requests.post(
-        wh_url, data=json.dumps(msg),
-        headers={'Content-Type': 'application/json'}
+        apprise_api_url,
+        data=json.dumps(payload).encode('utf-8'),
+        headers={"Content-Type": "application/json"} 
+    )
+        
+
+def send_msg(apobj, tag, msg, title):
+
+    apobj.notify(
+        body=msg,
+        title=title,
+        tag=tag
     )
 
 ######################################################################################################################
-# Check for version arguement and return just the version
+## Define Dynamic Variables from Database
 
-if len(sys.argv)>1:
-    if sys.argv[1] == 'version':
-        sql = "select version from config;"
+# Set delay time for checking for Packet information
 
-        conn = create_connection(db_file)
+sql = sqlalchemy.select(config.c.setting_value_int).where(config.c.setting_name =='delay_time')
 
-        result = select_sql(conn, sql)
-        for row in result:
-            print("APRSNotify Release " + row[0])
-        sys.exit()
-
-######################################################################################################################
-
-
-######################################################################################################################
-# Check for first run
-
-if not os.path.exists(db_file):
-    print(linefeed + "******** Your Database for APRSNotify is not configured. Please run an_util.py ********" + linefeed)
-    sys.exit()
-
-######################################################################################################################
-# Load Data from Database into variables
-
-# Create Database Connection
-conn = create_connection(db_file)
-
-# Build Position Callsign list
-result = select_sql(conn, "select callsign from callsignlists where listtype = 'POS';")
+result = dbf.select_sql(db_engine,sql)
 
 for row in result:
-    pos_callsign_list.append(row[0])
+    delay_time = row[0]
 
-# Build Message Callsign list
-result = select_sql(conn, "select callsign from callsignlists where listtype = 'MSG';")
+# APRSFI APi URL
+sql = sqlalchemy.select(apis.c.apiurl).where(apis.c.apiname=='aprsfi')
 
-for row in result:
-    msg_callsign_list.append(row[0])
-
-# Build Weather Station Callsign list
-result = select_sql(conn, "select callsign from callsignlists where listtype = 'WX';")
+result = dbf.select_sql(db_engine,sql)
 
 for row in result:
-    wx_callsign_list.append(row[0])
+    aprsfi_url = row[0]
 
-# Get api keys from database
+# APRSFi API Key
 
-sql = """select 
-telegram_bot_token,
-telegram_poswx_chat_id,
-aprsfikey,
-openweathermapkey,
-mastodon_client_id,
-mastodon_client_secret,
-mastodon_api_base_url,
-mastodon_user_access_token,
-discord_poswx_wh_url,
-mattermost_poswx_wh_url,
-mattermost_poswx_api_key,
-discord_aprsmsg_wh_url,
-pushover_token,
-pushover_userkey,
-slack_poswx_wh_url,
-slack_aprsmsg_wh_url,
-mattermost_aprsmsg_wh_url,
-mattermost_aprsmsg_api_key,
-telegram_aprsmsg_chat_id,
-telegram_club_chat_id,
-telegram_club_bot_token,
-discord_club_wh_url,
-mattermost_club_wh_url,
-mattermost_club_api_key,
-slack_club_wh_url
-from apikeys"""
+sql = sqlalchemy.select(apis.c.apikey).where(apis.c.apiname=='aprsfi')
 
-result = select_sql(conn, sql)
+result = dbf.select_sql(db_engine,sql)
 
 for row in result:
-    telegramkeys = {
-        "my_bot_token": row[0], 
-        "poswx_chat_id": row[1],
-        "aprsmsg_chat_id": row[18],
-        "club_bot_token": row[20],
-        "club_chat_id": row[19]
-    }
+    aprsfikey = row[0]
 
-    mastodonkeys = {
-        "client_id": row[4],
-        "client_secret": row[5],
-        "api_base_url": row[6],
-        "user_access_token": row[7]
-    }
+# Set Units to use
 
-    discordwh = {
-        "poswx_wh_url": row[8],
-        "aprsmsg_wh_url": row[11],
-        "club_wh_url": row[21]
-    }
+sql = sqlalchemy.select(config.c.setting_value_int).where(config.c.setting_name=='units_to_use')
 
-    mattermostwh = {
-        "poswx_wh_url": row[9],
-        "poswx_apikey": row[10],
-        "msg_wh_url": row[16],
-        "msg_apikey": row[17],
-        "club_wh_url": row[22],
-        "club_apikey": row[23]
-    }
-
-    pushover = {
-        "pushover_token": row[12],
-        "pushover_userkey": row[13]
-
-    }
-
-    slackwh = {
-        "poswx_wh_url": row[14],
-        "aprsmsg_wh_url": row[15],
-        "club_wh_url": row[24]
-    }
-
-
-    aprsfikey = row[2]
-    openweathermapkey = row[3]
-
-# Get config switches from database
-
-sql = """select 
-    telegram,
-    mastodon,
-    discord,
-    mattermost,
-    units_to_use,
-    include_map_image_telegram,
-    include_wx,
-    send_position_data,
-    send_weather_data,
-    aprsmsg_notify_telegram,
-    aprsmsg_notify_discord,
-    aprsmsg_notify_pushover,
-    aprsmsg_notify_mattermost,
-    aprsmsg_notify_slack,
-    slack,
-    club_telegram,
-    club_discord,
-    club_mattermost,
-    club_slack
-from config"""
-
-result = select_sql(conn, sql)
+result = dbf.select_sql(db_engine,sql)
 
 for row in result:
-    telegram = row[0]
-    mastodon = row[1]
-    discord = row[2]
-    mattermost = row[3]
-    units_to_use = row[4]
-    include_map_image_telegram = row[5]
-    include_wx = row[6]
-    send_position_data = row[7]
-    send_weather_data = row[8]
-    aprsmsg_notify_telegram = row[9]
-    aprsmsg_notify_discord = row[10]
-    aprsmsg_notify_pushover = row[11]
-    aprsmsg_notify_mattermost = row[12]
-    aprsmsg_notify_slack = row[13]
-    slack = row[14]
-    club_telegram = row[15]
-    club_discord = row[16]
-    club_mattermost = row[17]
-    club_slack = row[18]
+    units_to_use = row[0]
 
-# Get stamp data from database
-sql = """select 
-    lastpostime,
-    lastmsgid,
-    lastwxtime
-from aprsstamps"""
+# Get User's Timezone
 
-result = select_sql(conn, sql)
+sql = sqlalchemy.select(config.c.setting_value_text).where(config.c.setting_name=='user_timezone')
+
+result = dbf.select_sql(db_engine,sql)
 
 for row in result:
-    lasttime = row[0]
-    lastmsgid = row[1]
-    lastwxtime = row[2]
+    user_timezone = row[0]
+
+## Set Apprise Object
+
+# First check to see if we are using the Apprise-API
+
+sql = sqlalchemy.select(config.c.setting_value_boolean).where(config.c.setting_name=='use_apprise_api')
+
+result = dbf.select_sql(db_engine,sql)
+
+for row in result:
+    use_apprise_api = row[0]
+
+# Now build the objects appropriatly
+
+if not use_apprise_api:
+    # Build the Apprise Object for native install
+    # Position Services
+    sql = sqlalchemy.select(services.c.service_url).where((services.c.active==True) & (services.c.send_pos_data==True))
+
+    result = dbf.select_sql(db_engine,sql)
+
+    for row in result:
+        apobj.add(row[0], tag='POS')
+
+    # Weather Services
+    sql = sqlalchemy.select(services.c.service_url).where((services.c.active==True) & (services.c.send_wx_data==True))
+
+    result = dbf.select_sql(db_engine,sql)
+
+    for row in result:
+        apobj.add(row[0], tag='WX')
+
+    # Messaging Services
+    sql = sqlalchemy.select(services.c.service_url).where((services.c.active==True) & (services.c.send_msg_data==True))
+
+    result = dbf.select_sql(db_engine,sql)
+
+    for row in result:
+        apobj.add(row[0], tag='MSG')
 
 ######################################################################################################################
 # Define static JSON Payloads for API retrevials
 
-position_payload = {
-    'name': ",".join(pos_callsign_list),
+aprsfi_position_payload = {
+    'name': ",".join(build_callsignlist('POS')),
     'what': 'loc',
     'apikey': aprsfikey,
     'format': 'json'
 }
 
-msg_payload = {
+aprsfi_msg_payload = {
     'what': 'msg',
-    'dst': ",".join(msg_callsign_list),
+    'dst': ",".join(build_callsignlist('MSG')),
     'apikey': aprsfikey,
     'format': 'json'
 }
 
-wx_payload = {
-    'name': ",".join(wx_callsign_list),
+aprs_wx_payload = {
+    'name': ",".join(build_callsignlist('WX')),
     'what': 'wx',
     'apikey': aprsfikey,
     'format': 'json'
@@ -430,298 +342,183 @@ wx_payload = {
 ######################################################################################################################
 # Main Program
 
-###########################################
-# Check for position data
+while True:
 
-if send_position_data:
+    # Check for Position Data
+    if len(build_callsignlist('POS')) > 0:
+        data = get_api_data_payload(aprsfi_url,aprsfi_position_payload)
 
-    data = get_api_data_payload(aprsfi_api_base_url,position_payload)
+        for x in range(0,data['found']):
+            fixed_station = False
 
-    x=0
-    while x <= len(pos_callsign_list)-1 and x < data['found']:
-        if int(data['entries'][x]["lasttime"]) > lasttime:
-            station = data['entries'][x]["name"]
-            lat = str(data['entries'][x]["lat"])
-            lng = str(data['entries'][x]["lng"])
-            lasttime = data['entries'][x]["lasttime"]
-            if "speed" in data['entries'][x]:
-                speedkph = float(data['entries'][x]["speed"])
-            else:
-                fixed_station = True
-        
-            goodposdata = True
-            break
-        else:
-            x=x+1
-            goodposdata = False
+            if int(data['entries'][x]["lasttime"]) > get_last_timestamp(data['entries'][x]["name"],'POS'):
+                station = data['entries'][x]["name"]
+                lat = str(data['entries'][x]["lat"])
+                lng = str(data['entries'][x]["lng"])
+                lasttime = data['entries'][x]["lasttime"]
+                if "speed" in data['entries'][x]:
+                    speedkph = float(data['entries'][x]["speed"])
+                else:
+                    fixed_station = True
 
-    if goodposdata: # If we have a good set of packet data
-        
-        #Create Status Message
-        status = station + ": "+ get_location(lat,lng)
-            
-        if not fixed_station:
-            if units_to_use == 1:
-                status = status + " | Speed: "+ str(speedkph) + " kph"
-            else:
-                status = status + " | Speed: "+ str(round(speedkph/1.609344,1)) + " mph"  
-            
-        status = status + " | Grid: " + get_grid(float(lat),float(lng))
-        
-        if include_wx:
-            #Get Weather Data
-            conditions, temp = get_curr_wx(lat, lng)
+                status = station + ": "+ get_location(lat,lng)
+                    
+                if not fixed_station:
+                    if units_to_use == 1:
+                        status = status + " | Speed: "+ str(speedkph) + " kph"
+                    else:
+                        status = status + " | Speed: "+ str(round(speedkph/1.609344,1)) + " mph"  
+                    
+                status = status + " | Grid: " + get_grid(float(lat),float(lng))
+                
+                #Get Weather Data
+                conditions, temp = get_curr_wx(lat, lng)
 
-            if units_to_use == 1:
-                status = status + " | WX: "+ str(temp) + degree_sign + " C & " + conditions
-            else:
-                status = status + " | WX: "+ str(temp) + degree_sign + " F & " + conditions
+                if units_to_use == 1:
+                    status = status + " | WX: "+ str(temp) + degree_sign + " C & " + conditions
+                else:
+                    status = status + " | WX: "+ str(temp) + degree_sign + " F & " + conditions
 
-        status = status + " | " + datetime.datetime.fromtimestamp(int(lasttime)).strftime('%H:%M:%S')
+                status = status + " | " + convert_local_time(int(lasttime)).strftime(localFormat_time)
 
-        # Now finish off the status for Slack and everything else. The URL create method is different for Slack
-        slack_status = status + " | <https://aprs.fi/" + station + "|https://aprs.fi/" + station + ">"
-        status = status +  " | https://aprs.fi/" + station
-        micro_status = status + " #APRS" # for microblogging sites like Twitter/Mastodon
+                # Now finish off the status for Slack and everything else. The URL create method is different for Slack
+                status = status +  " | https://aprs.fi/" + station + " #APRS"
+                title = station + ' Position Report'
 
-        msg_type = 1 # APRS Position Data
-        
-        # Now we send the status
-        if not debug:
-                # msg_types
-                # 1: Postion Data
-                # 2: Weather Data
-                # 3: APRS message
+                if use_apprise_api:
+                    send_msg_api('POS', status, title)
+                else:
+                    send_msg(apobj, 'POS', status, title)
 
-            # Send to a personal system
-            if telegram: # Send Status to Telegram
-                send_telegram(status, msg_type, lat,lng, telegramkeys["my_bot_token"], telegramkeys["poswx_chat_id"])
+                update_last_timestamp(station,'POS', lasttime)
 
-            if mastodon: # Send Status to Mastodon
-                send_mastodon(micro_status)
+    # Check for Weather Data
 
-            if discord: # Send Status to Discord
-                send_discord(status, discordwh["poswx_wh_url"], msg_type, station)
+    if len(build_callsignlist('WX')) > 0:
+        data = get_api_data_payload(aprsfi_url,aprsfi_wx_payload)
 
-            if mattermost: # Send Status to Mattermost
-                send_mattermost(status, mattermostwh["poswx_wh_url"], mattermostwh["poswx_apikey"])
+        for x in range(0,data['found']):
+            if int(data['entries'][x]["time"]) > get_last_timestamp(data['entries'][x]["name"],'WX'):
+                station = data['entries'][x]["name"]
+                lastwxtime = data['entries'][x]["time"]
+                if "temp" in data['entries'][x]:
+                    tempC = float(data['entries'][x]["temp"])
+                else:
+                    tempC = 'None'
+                if "pressure" in data['entries'][x]:
+                    pressure = float(data['entries'][x]["pressure"])
+                else:
+                    pressure = 'None'            
+                if "humidity" in data['entries'][x]:
+                    humidity = float(data['entries'][x]["humidity"])
+                else:
+                    humidity = 'None' 
+                if "wind_direction" in data['entries'][x]:
+                    wind_direction = float(data['entries'][x]["wind_direction"])
+                else:
+                    wind_direction = 'None'
+                if "wind_speed" in data['entries'][x]:
+                    wind_speed = float(data['entries'][x]["wind_speed"])
+                else:
+                    wind_speed = 'None'
+                if "wind_gust" in data['entries'][x]:
+                    wind_gust = float(data['entries'][x]["wind_gust"])
+                else:
+                    wind_gust = 'None'
+                if "rain_1h" in data['entries'][x]:
+                    rain_1h = float(data['entries'][x]["rain_1h"])
+                else:
+                    rain_1h = 'None'
+                if "rain_24h" in data['entries'][x]:
+                    rain_24h = float(data['entries'][x]["rain_24h"])
+                else:
+                    rain_24h = 'None'
+                if "rain_mn" in data['entries'][x]:
+                    rain_mn = float(data['entries'][x]["rain_mn"])
+                else:
+                    rain_mn = 'None'
+                if "luminosity" in data['entries'][x]:
+                    luminosity = float(data['entries'][x]["luminosity"])
+                else:
+                    luminosity = 'None'
 
-            if slack: # Send Status to Slack
-                slack_msg = {'text': slack_status}
-                send_slack(slack_msg, slackwh["poswx_wh_url"])
-            
-            # See about sending to a club system            
-            if club_telegram: # Send Status to Telegram
-                send_telegram(status, 1, lat,lng, telegramkeys["club_bot_token"], telegramkeys["club_chat_id"])
+                status = station + " WX Data as of " + datetime.datetime.fromtimestamp(int(lastwxtime)).strftime('%H:%M:%S') + linefeed
 
-            if club_discord: # Send Status to Discord
-                send_discord(status, discordwh["club_wh_url"], msg_type, station)
+                if isinstance(tempC,float):
+                    if units_to_use == 1:
+                        status = status + "Temp: " + str(tempC) + degree_sign + " C" + linefeed
+                    else:
+                        status = status + "Temp: " + str(9.0/5.0 * tempC + 32) + degree_sign + " F" + linefeed
+                if isinstance(pressure,float):
+                    status = status + "Pressure: " + str(pressure) + " mbar" + linefeed
+                if isinstance(humidity,float):
+                    status = status + "Humidity: " + str(humidity) + "%" + linefeed
+                if isinstance(wind_direction,float):
+                    status = status + "Wind Direction: " + str(wind_direction) + degree_sign + linefeed
+                if isinstance(wind_speed,float):
+                    if units_to_use == 1:
+                        status = status + "Wind Speed: " + str(round(wind_speed * 3.6,1)) + " kph" + linefeed
+                    else:
+                        status = status + "Wind Speed: " + str(round(wind_speed * 2.2369,1)) + " mph" + linefeed
+                if isinstance(wind_gust,float):
+                    if units_to_use == 1:
+                        status = status + "Wind Gust: " + str(round(wind_gust * 3.6,1)) + " kph" + linefeed
+                    else:
+                        status = status + "Wind Gust: " + str(round(wind_gust * 2.2369,1)) + " mph" + linefeed
+                if isinstance(rain_1h,float):
+                    if units_to_use == 1:
+                        status = status + "Rain 1Hr: " + str(round(rain_1h,1)) + " mm" + linefeed
+                    else:
+                        status = status + "Rain 1Hr: " + str(round(rain_1h * 0.03937007874,1)) + " in" + linefeed
+                if isinstance(rain_24h,float):
+                    if units_to_use == 1:
+                        status = status + "Rain 24Hr: " + str(round(rain_24h,1)) + " mm" + linefeed
+                    else:
+                        status = status + "Rain 24Hr: " + str(round(rain_24h * 0.03937007874,1)) + " in" + linefeed
+                if isinstance(rain_24h,float):
+                    if units_to_use == 1:
+                        status = status + "Rain Since Midnight: " + str(round(rain_mn,1)) + " mm" + linefeed
+                    else:
+                        status = status + "Rain Since Midnight: " + str(round(rain_mn * 0.03937007874,1)) + " in" + linefeed
+                if isinstance(luminosity,float):
+                    status = status + "Luminosity: " + str(luminosity) + "W/m^2" + linefeed
 
-            if club_mattermost: # Send Status to Mattermost
-                send_mattermost(status, mattermostwh["club_wh_url"], mattermostwh["club_apikey"])
+                # Now finish off the status for Slack and everything else. The URL create method is different for Slack
+                status = status +  " | https://aprs.fi/" + station + " #APRS"
+                title = station + ' Weather Report'
 
-            if club_slack: # Send Status to Slack
-                slack_msg = {'text': slack_status}
-                send_slack(slack_msg, slackwh["club_wh_url"])
-        else:
-            print(status) # Send to Screen (for debugging)
+                if use_apprise_api:
+                    send_msg_api('WX', status, title)
+                else:
+                    send_msg(apobj, 'WX', status, title)
 
-###########################################
-# Now check for Weather Station Data  
-      
-if send_weather_data:
+                update_last_timestamp(station,'WX', lastwxtime)
 
-    data = get_api_data_payload(aprsfi_api_base_url,wx_payload)
+    # Check for Message Data
 
-    x=0
-    while x <= len(wx_callsign_list)-1 and x < data['found']:
-        if int(data['entries'][x]["time"]) > lastwxtime:
-            station = data['entries'][x]["name"]
-            lastwxtime = data['entries'][x]["time"]
-            if "temp" in data['entries'][x]:
-                tempC = float(data['entries'][x]["temp"])
-            else:
-                tempC = 'None'
-            if "pressure" in data['entries'][x]:
-                pressure = float(data['entries'][x]["pressure"])
-            else:
-                pressure = 'None'            
-            if "humidity" in data['entries'][x]:
-                humidity = float(data['entries'][x]["humidity"])
-            else:
-                humidity = 'None' 
-            if "wind_direction" in data['entries'][x]:
-                wind_direction = float(data['entries'][x]["wind_direction"])
-            else:
-                wind_direction = 'None'
-            if "wind_speed" in data['entries'][x]:
-                wind_speed = float(data['entries'][x]["wind_speed"])
-            else:
-                wind_speed = 'None'
-            if "wind_gust" in data['entries'][x]:
-                wind_gust = float(data['entries'][x]["wind_gust"])
-            else:
-                wind_gust = 'None'
-            if "rain_1h" in data['entries'][x]:
-                rain_1h = float(data['entries'][x]["rain_1h"])
-            else:
-                rain_1h = 'None'
-            if "rain_24h" in data['entries'][x]:
-                rain_24h = float(data['entries'][x]["rain_24h"])
-            else:
-                rain_24h = 'None'
-            if "rain_mn" in data['entries'][x]:
-                rain_mn = float(data['entries'][x]["rain_mn"])
-            else:
-                rain_mn = 'None'
-            if "luminosity" in data['entries'][x]:
-                luminosity = float(data['entries'][x]["luminosity"])
-            else:
-                luminosity = 'None'
+    if len(build_callsignlist('MSG')) > 0:
+        data = get_api_data_payload(aprsfi_url,aprsfi_msg_payload)
 
-            goodwxdata = True
-            break
-        else:
-            x=x+1
-            goodwxdata = False
+        for x in range(0,data['found']):
+            if int(data['entries'][x]["time"]) > get_last_timestamp(data['entries'][x]["dst"],'MSG'):
+                srccall = data['entries'][x]["srccall"]
+                dstcall = data['entries'][x]["dst"]
+                msg = data['entries'][x]["message"]
+                dtstamp = data['entries'][x]["time"]
+                lastmsgid = data['entries'][x]["messageid"]
 
-    if goodwxdata: # If we have a good set of packet data
-        
-        #Create Status Message
-        status = station + " WX Data as of " + datetime.datetime.fromtimestamp(int(lastwxtime)).strftime('%H:%M:%S') + linefeed
+                msg_timestamp = datetime.datetime.fromtimestamp(int(dtstamp)).strftime('%H:%M:%S')
+                msg_datestamp = datetime.datetime.fromtimestamp(int(dtstamp)).strftime('%m/%d/%Y')
 
-        if isinstance(tempC,float):
-            if units_to_use == 1:
-                status = status + "Temp: " + str(tempC) + degree_sign + " C" + linefeed
-            else:
-                status = status + "Temp: " + str(9.0/5.0 * tempC + 32) + degree_sign + " F" + linefeed
-        if isinstance(pressure,float):
-            status = status + "Pressure: " + str(pressure) + " mbar" + linefeed
-        if isinstance(humidity,float):
-            status = status + "Humidity: " + str(humidity) + "%" + linefeed
-        if isinstance(wind_direction,float):
-            status = status + "Wind Direction: " + str(wind_direction) + degree_sign + linefeed
-        if isinstance(wind_speed,float):
-            if units_to_use == 1:
-                status = status + "Wind Speed: " + str(round(wind_speed * 3.6,1)) + " kph" + linefeed
-            else:
-                status = status + "Wind Speed: " + str(round(wind_speed * 2.2369,1)) + " mph" + linefeed
-        if isinstance(wind_gust,float):
-            if units_to_use == 1:
-                status = status + "Wind Gust: " + str(round(wind_gust * 3.6,1)) + " kph" + linefeed
-            else:
-                status = status + "Wind Gust: " + str(round(wind_gust * 2.2369,1)) + " mph" + linefeed
-        if isinstance(rain_1h,float):
-            if units_to_use == 1:
-                status = status + "Rain 1Hr: " + str(round(rain_1h,1)) + " mm" + linefeed
-            else:
-                status = status + "Rain 1Hr: " + str(round(rain_1h * 0.03937007874,1)) + " in" + linefeed
-        if isinstance(rain_24h,float):
-            if units_to_use == 1:
-                status = status + "Rain 24Hr: " + str(round(rain_24h,1)) + " mm" + linefeed
-            else:
-                status = status + "Rain 24Hr: " + str(round(rain_24h * 0.03937007874,1)) + " in" + linefeed
-        if isinstance(rain_24h,float):
-            if units_to_use == 1:
-                status = status + "Rain Since Midnight: " + str(round(rain_mn,1)) + " mm" + linefeed
-            else:
-                status = status + "Rain Since Midnight: " + str(round(rain_mn * 0.03937007874,1)) + " in" + linefeed
-        if isinstance(luminosity,float):
-            status = status + "Luminosity: " + str(luminosity) + "W/m^2" + linefeed
+                # create msg status and send to Telegram
+                msg_status = "On " + msg_datestamp + " at " + msg_timestamp + ", " + srccall + " sent " + dstcall + " the following APRS message: " + msg
+                title = "Message Notification"
 
-        # Now finish off the status for Slack and everything else. The URL create method is different for Slack
-        slack_status = status + " | <https://aprs.fi/" + station + "|https://aprs.fi/" + station + ">"
-        status = status +  " | https://aprs.fi/" + station
+                if use_apprise_api:
+                    send_msg_api('MSG', status, title)
+                else:
+                    send_msg(apobj, 'MSG', status, title)
 
-        msg_type = 2 # APRS Weather Data
-        
-        if not debug:
-                # msg_types
-                # 1: Postion Data
-                # 2: Weather Data
-                # 3: APRS message
+                update_last_timestamp(station,'MSG', lastmsgid)  
 
-            # Send to a personal system
-            if telegram: # Send Status to Telegram
-                send_telegram(status, msg_type, lat,lng, telegramkeys["my_bot_token"], telegramkeys["poswx_chat_id"])
-
-            if mastodon: # Send Status to Mastodon
-                send_mastodon(status)
-
-            if discord: # Send Status to Discord
-                send_discord(status, discordwh["poswx_wh_url"], msg_type, station)
-
-            if mattermost: # Send Status to Mattermost
-                send_mattermost(status, mattermostwh["poswx_wh_url"], mattermostwh["poswx_apikey"])
-
-            if slack: # Send Status to Slack
-                slack_msg = {'text': slack_status}
-                send_slack(slack_msg, slackwh["poswx_wh_url"])
-
-            # See about sending to a club system 
-            if club_telegram: # Send Status to Telegram
-                send_telegram(status, msg_type, lat,lng, telegramkeys["club_bot_token"], telegramkeys["club_chat_id"])
-
-            if club_discord: # Send Status to Discord
-                send_discord(status, discordwh["club_wh_url"], msg_type, station)
-
-            if club_mattermost: # Send Status to Mattermost
-                send_mattermost(status, mattermostwh["club_wh_url"], mattermostwh["club_apikey"])
-
-            if club_slack: # Send Status to Slack
-                slack_msg = {'text': slack_status}
-                send_slack(slack_msg, slackwh["club_wh_url"])
-        else: 
-            print(status) # Send to Screen (for debugging)
-
-###########################################
-# Now Check for messages to my callsign(s) 
-
-if aprsmsg_notify_telegram or aprsmsg_notify_discord or aprsmsg_notify_mattermost or aprsmsg_notify_slack or aprsmsg_notify_pushover:
-
-    data = get_api_data_payload(aprsfi_api_base_url,msg_payload)
-
-    x=0
-    while x <= len(msg_callsign_list)-1 and x < data['found']:
-        if int(data['entries'][x]["messageid"]) > lastmsgid:
-            srccall = data['entries'][x]["srccall"]
-            dstcall = data['entries'][x]["dst"]
-            msg = data['entries'][x]["message"]
-            dtstamp = data['entries'][x]["time"]
-            lastmsgid = data['entries'][x]["messageid"]
-            goodmsgdata = True
-            break
-        else:
-            x=x+1
-            goodmsgdata = False
-
-    if goodmsgdata: # If we have good msg data
-        msg_timestamp = datetime.datetime.fromtimestamp(int(dtstamp)).strftime('%H:%M:%S')
-        msg_datestamp = datetime.datetime.fromtimestamp(int(dtstamp)).strftime('%m/%d/%Y')
-
-        # create msg status and send to Telegram
-        msg_status = "On " + msg_datestamp + " at " + msg_timestamp + ", " + srccall + " sent " + dstcall + " the following APRS message: " + msg
-
-        msg_type = 3 # APRS Message Notification
-
-        if not debug:
-            if aprsmsg_notify_telegram:
-                send_telegram(msg_status, msg_type, lat,lng, telegramkeys["my_bot_token"], telegramkeys["msg_chat_id"])
-            if aprsmsg_notify_discord:
-                send_discord(msg_status,discordwh["aprsmsg_wh_url"], msg_type,'')
-            if aprsmsg_notify_pushover:
-                send_pushover(msg_status)
-            if aprsmsg_notify_slack:
-                slack_msg = {'text': msg_status}
-                send_slack(slack_msg,slackwh["aprsmsg_wh_url"])    
-            if aprsmsg_notify_mattermost:
-                send_mattermost(msg, mattermostwh["msg_wh_url"], mattermostwh["msg_apikey"])         
-        else:
-            print(msg_status) # Send to Screen (for debugging)
-
-# Update aprsstamps table in database with lastmsgid/DT Stamp and close
-sql = "update aprsstamps set lastpostime = " + str(lasttime) + ", lastmsgid = " + str(lastmsgid) + ", lastwxtime = " + str(lastwxtime) + ";"
-if not debug:
-    exec_sql(conn, sql)
-else:
-    print(sql)
+    sleep(delay_time)          
