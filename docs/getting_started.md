@@ -1,11 +1,12 @@
 # Getting Started
 
 ### Installation Steps
-1) Setup Config file
-2) Obtain API Keys
-3) Install needed packages, clone Repo and install library dependencies
-4) Run the Script
-5) Set all other configuration options
+
+    1) Setup Config file
+    2) Obtain API Keys
+    3) Install needed packages, clone Repo and install library dependencies
+    4) Run the Script
+    5) Set all other configuration options
 
 Remember that all the commands shared here are for Linux. So if you want you can run this on a Linux Server or even a Raspberry Pi, which is how I see most of these run. In fact I have mine running on a Raspberry Pi 3B+.
 
