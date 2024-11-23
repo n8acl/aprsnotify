@@ -69,6 +69,7 @@ fixed_station = False
 server_timezone = "Etc/UTC"
 localFormat = "%Y-%m-%d %H:%M:%S"
 localFormat_time = "%H:%M:%S"
+localFormat_date = "%Y-%m-%d"
 
 ######################################################################################################################
 ## Define Functions
@@ -500,25 +501,25 @@ while True:
         data = get_api_data_payload(aprsfi_url,aprsfi_msg_payload)
 
         for x in range(0,data['found']):
-            if int(data['entries'][x]["time"]) > get_last_timestamp(data['entries'][x]["dst"],'MSG'):
+            if int(data['entries'][x]["messageid"]) > get_last_timestamp(data['entries'][x]["dst"],'MSG'):
                 srccall = data['entries'][x]["srccall"]
                 dstcall = data['entries'][x]["dst"]
                 msg = data['entries'][x]["message"]
                 dtstamp = data['entries'][x]["time"]
                 lastmsgid = data['entries'][x]["messageid"]
 
-                msg_timestamp = datetime.datetime.fromtimestamp(int(dtstamp)).strftime('%H:%M:%S')
-                msg_datestamp = datetime.datetime.fromtimestamp(int(dtstamp)).strftime('%m/%d/%Y')
+                msg_timestamp = convert_local_time(int(dtstamp)).strftime(localFormat_time)
+                msg_datestamp = convert_local_time(int(dtstamp)).strftime(localFormat_date)
 
                 # create msg status and send to Telegram
                 msg_status = "On " + msg_datestamp + " at " + msg_timestamp + ", " + srccall + " sent " + dstcall + " the following APRS message: " + msg
                 title = "Message Notification"
 
                 if use_apprise_api:
-                    send_msg_api('MSG', status, title)
+                    send_msg_api('MSG', msg_status, title)
                 else:
-                    send_msg(apobj, 'MSG', status, title)
+                    send_msg(apobj, 'MSG', msg_status, title)
 
-                update_last_timestamp(station,'MSG', lastmsgid)  
+                update_last_timestamp(dstcall,'MSG', lastmsgid)  
 
     sleep(delay_time)          

@@ -94,6 +94,12 @@ If you reach out to me and have an error, please include what error you are gett
 ## Change Log 
 Changes Prior to current year have been moved to the [ChangeLog](https://n8acl.github.io/aprsnotify/changelog/) on the wiki.
 
+## Version 1.0.1 - Released 11/23/2024
+## Changed
+- Fixed a couple of bugs with handling message notifcations
+
+
+
 ## Version 1.0.0 - Released 10/30/2024
 ## Added
 - Now uses the Apprise notification library for service notifiction support. 
